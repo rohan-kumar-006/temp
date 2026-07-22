@@ -9,6 +9,6 @@ public class ApplicationDbContext : DbContext
     {
     }
     public DbSet<User> Users{get;set;}
-    public DbSet<Product> Product{get;set;}
+    public DbSet<Product> Products{get;set;}
     public DbSet<StockTransaction> StockTransactions{get;set;}
 }
