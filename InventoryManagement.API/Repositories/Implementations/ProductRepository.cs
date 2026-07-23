@@ -8,7 +8,7 @@ namespace InventoryManagement.API.Repositories.Implementations;
 public class ProductRepository : IProductRepository{
     private readonly ApplicationDbContext _context;
 
-    ProductRepository(ApplicationDbContext context)
+    public ProductRepository(ApplicationDbContext context)
     {
         _context=context;
     }
@@ -40,7 +40,7 @@ public class ProductRepository : IProductRepository{
     }
     public async Task<bool> ExistsBySkuAsync(string sku)
     {
-        return await _context.Products.AllAsync(p=>p.SKU==sku);
+        return await _context.Products.AnyAsync(p=>p.SKU==sku);
     }
     public async Task SaveChangesAsync()
     {

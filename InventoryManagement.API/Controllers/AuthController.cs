@@ -1,0 +1,26 @@
+using InventoryManagement.API.DTOs.Auth;
+using InventoryManagement.API.Services.Implementations;
+using InventoryManagement.API.Services.Interfaces;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Identity.Client;
+
+namespace InventoryManagement.API.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+public class AuthController : ControllerBase
+{
+    private readonly IAuthService _authService;
+
+    public AuthController(IAuthService authService)
+    {
+        _authService=authService;
+    }
+
+    [HttpPost("login")]
+    public async Task<ActionResult<LoginResponseDto>> Login(LoginRequestDto request)
+    {
+        var response = await  _authService.LoginAsync(request);
+        return Ok(response);
+    }
+}

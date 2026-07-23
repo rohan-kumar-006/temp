@@ -1,8 +1,13 @@
 using System.Text;
-using InventoryManagement.API.Configurtion;
+using InventoryManagement.API.Configuration;
 using InventoryManagement.API.Data;
+using InventoryManagement.API.Data.Seed;
+using InventoryManagement.API.Helpers.Implementations;
+using InventoryManagement.API.Helpers.Interfaces;
 using InventoryManagement.API.Repositories.Implementations;
 using InventoryManagement.API.Repositories.Interfaces;
+using InventoryManagement.API.Services.Implementations;
+using InventoryManagement.API.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -44,8 +49,20 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                                 Encoding.UTF8.GetBytes(jwtSettings.Key))  
                             };
                 });
+builder.Services.AddScoped<IAuthService,AuthService>();
+builder.Services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
+builder.Services.AddAuthorization();
+builder.Services.AddControllers();
 
 var app = builder.Build();
+
+using(var scope = app.Services.CreateScope())
+{
+    var context=scope.ServiceProvider.
+    GetRequiredService<ApplicationDbContext>();
+
+    await DataSeeder.SeedAdminAsync(context);
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -57,6 +74,7 @@ app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
+app.MapControllers();
 
 app.Run();
 
