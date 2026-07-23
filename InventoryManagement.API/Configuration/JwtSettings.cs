@@ -1,4 +1,4 @@
-namespace InventoryManagement.API.Configurtion;
+namespace InventoryManagement.API.Configuration;
 
 public class JwtSettings{
     public string Key{set;get;}=String.Empty;
