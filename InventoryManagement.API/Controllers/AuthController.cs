@@ -1,3 +1,4 @@
+using InventoryManagement.API.Common;
 using InventoryManagement.API.DTOs.Auth;
 using InventoryManagement.API.Services.Implementations;
 using InventoryManagement.API.Services.Interfaces;
@@ -21,6 +22,12 @@ public class AuthController : ControllerBase
     public async Task<ActionResult<LoginResponseDto>> Login(LoginRequestDto request)
     {
         var response = await  _authService.LoginAsync(request);
-        return Ok(response);
+        return Ok(
+            new ApiResponse<LoginResponseDto>(
+                true,
+                "Login Successfull",
+                response
+            )
+        );
     }
 }

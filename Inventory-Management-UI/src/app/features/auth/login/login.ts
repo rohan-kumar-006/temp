@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 
 import { AuthService } from '../../../core/services/auth';
 import { Router } from '@angular/router';
+import { LoginRequest } from '../../../core/models/login-request.model';
 
 @Component({
   selector: 'app-login',
@@ -21,7 +22,7 @@ export class Login {
 
   login(){
 
-    const request = {
+    const request:LoginRequest = {
 
         email:this.email,
 
@@ -34,7 +35,7 @@ export class Login {
 
             next:(response)=>{
 
-                this.authService.saveToken(response.token);
+                this.authService.saveToken(response.data.token);
 
                 this.router.navigate(['/dashboard']);
 

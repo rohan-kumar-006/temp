@@ -4,6 +4,7 @@ using InventoryManagement.API.Data;
 using InventoryManagement.API.Data.Seed;
 using InventoryManagement.API.Helpers.Implementations;
 using InventoryManagement.API.Helpers.Interfaces;
+using InventoryManagement.API.Middleware;
 using InventoryManagement.API.Repositories.Implementations;
 using InventoryManagement.API.Repositories.Interfaces;
 using InventoryManagement.API.Services.Implementations;
@@ -51,17 +52,18 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 });
 builder.Services.AddScoped<IAuthService,AuthService>();
 builder.Services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
+builder.Services.AddScoped<IUserService,UserService>();
 builder.Services.AddAuthorization();
 builder.Services.AddControllers();
 
-var myAllowSpecificOrigins = "_myAllowSpecificOrigins";
+var specificOrigins = "_specificOrigins";
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy(name: myAllowSpecificOrigins,
+    options.AddPolicy(name: specificOrigins,
                       policy =>
                       {
-                          policy.WithOrigins("http://localhost:4200") // Frontend URLs
+                          policy.WithOrigins("http://localhost:4200") 
                                 .AllowAnyHeader()
                                 .AllowAnyMethod();
                       });
@@ -84,8 +86,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
-app.UseCors(myAllowSpecificOrigins);
+app.UseMiddleware<ExceptionMiddleware>();
+app.UseCors(specificOrigins);
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
