@@ -26,9 +26,12 @@ public class UserRepository : IUserRepository
             .FindAsync(id);
     }
 
-    public async Task<IEnumerable<User>> GetAllSync()
+    public async Task<IEnumerable<User>> GetAllStaffAsync()
     {
-        return await _context.Users.ToListAsync();
+        return await _context.Users
+            .Where(u=>u.Role==Enums.UserRole.Staff)
+            .OrderByDescending(u=>u.CreatedAt)
+            .ToListAsync();
     }
 
     public async Task AddAsync(User user)

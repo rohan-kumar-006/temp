@@ -1,0 +1,166 @@
+<div class="container mt-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+
+        <h3>Staff Management</h3>
+
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#staffModal">
+
+            Add Staff
+
+        </button>
+
+    </div>
+    <div class="text-center" *ngIf="loading">
+
+        Loading...
+
+    </div>
+    <div class="alert alert-danger" *ngIf="errorMessage">
+        {{ errorMessage }}
+    </div>
+
+    <div class="alert alert-success" *ngIf="successMessage">
+        {{ successMessage }}
+    </div>
+
+    <table class="table table-bordered table-hover">
+
+        <thead>
+
+            <tr>
+
+                <th>Name</th>
+
+                <th>Email</th>
+
+                <th>Status</th>
+
+                <th width="180">
+                    Actions
+                </th>
+
+            </tr>
+
+        </thead>
+
+        <tbody>
+            <tr *ngIf="users.length===0">
+
+                <td colspan="4" class="text-center">
+
+                    No staff members found.
+
+                </td>
+
+            </tr>
+
+            <tr *ngFor="let user of users">
+
+                <td>{{user.fullName}}</td>
+
+                <td>{{user.email}}</td>
+
+                <td>
+
+                    <span class="badge" [ngClass]="
+                        user.isActive
+                        ?'bg-success'
+                        :'bg-danger'
+                    ">
+
+                        {{user.isActive?'Active':'Inactive'}}
+
+                    </span>
+
+                </td>
+
+                <td>
+
+                    <button class="btn btn-warning btn-sm me-2">
+
+                        Edit
+
+                    </button>
+
+                    <button class="btn btn-secondary btn-sm">
+
+                        {{user.isActive
+                        ?'Deactivate'
+                        :'Activate'}}
+
+                    </button>
+
+                </td>
+
+            </tr>
+
+        </tbody>
+
+    </table>
+
+</div>
+
+<div class="modal fade" id="staffModal">
+
+    <div class="modal-dialog">
+
+        <div class="modal-content">
+
+            <div class="modal-header">
+
+                <h5>Add Staff</h5>
+
+            </div>
+
+            <div class="modal-body">
+
+                <form [formGroup]="staffForm">
+                    <div class="mb-3">
+
+                        <label>Full Name</label>
+
+                        <input type="text" class="form-control" formControlName="fullName">
+
+                    </div>
+
+                    <div class="mb-3">
+
+                        <label>Email</label>
+
+                        <input type="email" class="form-control" formControlName="email">
+
+                    </div>
+
+                    <div class="mb-3">
+
+                        <label>Password</label>
+
+                        <input type="password" class="form-control" formControlName="password">
+
+                    </div>
+                </form>
+
+            </div>
+
+            <div class="modal-footer">
+
+                <button class="btn btn-secondary" data-bs-dismiss="modal">
+
+                    Cancel
+
+                </button>
+
+                <button class="btn btn-primary" [disabled]="staffForm.invalid" (click)="createStaff()">
+
+                    Save
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>

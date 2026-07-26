@@ -1,4 +1,5 @@
 using InventoryManagement.API.DTOs.Users;
+using InventoryManagement.API.Enums;
 using InventoryManagement.API.Models;
 using InventoryManagement.API.Repositories.Interfaces;
 using InventoryManagement.API.Services.Interfaces;
@@ -15,7 +16,7 @@ public class UserService : IUserService
 
     public async Task<UserDto> CreateStaffAsync(CreateUserDto request)
     {
-        var existingUser=_userRepository.GetByEmailAsync(request.Email);
+        var existingUser=await _userRepository.GetByEmailAsync(request.Email);
 
         if (existingUser != null)
         {
@@ -43,5 +44,18 @@ public class UserService : IUserService
             Role=user.Role.ToString(),
             IsActive=user.IsActive
         };
+    }   
+
+    public async Task<IEnumerable<UserDto>> GetAllStaffAsync()
+    {
+        var users=await _userRepository.GetAllStaffAsync();
+        
+        return users.Select(u=>new UserDto{
+            Id=u.Id,
+            FullName=u.FullName,
+            Email=u.Email,
+            Role=u.Role.ToString(),
+            IsActive=u.IsActive
+        });
     }
 }
