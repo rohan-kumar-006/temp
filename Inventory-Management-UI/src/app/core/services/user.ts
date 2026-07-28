@@ -5,6 +5,7 @@ import { Observable } from 'rxjs';
 import { ApiResponse } from '../models/app-response.model';
 import { User } from '../models/user.model';
 import { CreateUser } from '../models/create-user.model';
+import { UpdateUser } from '../models/update-user.model';
 
 @Injectable({
   providedIn: 'root',
@@ -19,10 +20,24 @@ export class UserService {
         `${this.apiUrl}/users`
     )
   }
+
   createStaff(request:CreateUser):Observable<ApiResponse<User>>{
     return this.http.post<ApiResponse<User>>(
       `${this.apiUrl}/users`,
       request
+    )
+  }
+
+  updateStaff(id:number,request:UpdateUser ) : Observable<ApiResponse<User>>{
+    return this.http.put<ApiResponse<User>>(
+    `${this.apiUrl}/users/${id}`,
+    request);
+  }
+
+  toggleStatus(id:number) : Observable<ApiResponse<User>>{
+    console.log("service hit")
+    return this.http.patch<ApiResponse<User>>(
+      `${this.apiUrl}/users/${id}/status`,{}
     )
   }
 }

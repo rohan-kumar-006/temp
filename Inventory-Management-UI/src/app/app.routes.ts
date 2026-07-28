@@ -3,6 +3,7 @@ import { Login } from './features/auth/login/login';
 import { Dashboard } from './features/dashboard/dashboard/dashboard';
 import { authGuard } from './core/guards/auth-guard';
 import { StaffManagement } from './features/users/staff-management/staff-management';
+import { loginGuard } from './core/guards/login-guard';
 
 export const routes: Routes = [
     {
@@ -12,7 +13,8 @@ export const routes: Routes = [
     },
     {
         path: "login",
-        component: Login
+        component: Login,
+        canActivate:[loginGuard]
     },
     {
         path: 'dashboard',

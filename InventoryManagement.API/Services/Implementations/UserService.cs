@@ -7,55 +7,117 @@ using InventoryManagement.API.Services.Interfaces;
 namespace InventoryManagement.API.Services.Implementations;
 
 public class UserService : IUserService
-{   
+{
     private readonly IUserRepository _userRepository;
     public UserService(IUserRepository userRepository)
     {
-        _userRepository=userRepository;
+        _userRepository = userRepository;
     }
 
     public async Task<UserDto> CreateStaffAsync(CreateUserDto request)
     {
-        var existingUser=await _userRepository.GetByEmailAsync(request.Email);
+        var existingUser = await _userRepository.GetByEmailAsync(request.Email);
 
         if (existingUser != null)
         {
             throw new ArgumentException("Email Already Exists");
         }
 
-        var user=new User
-        { 
-            FullName=request.FullName,
-            Email=request.Email,
-            PasswordHash=BCrypt.Net.BCrypt.HashPassword(request.Password),
-            Role=Enums.UserRole.Staff,
-            IsActive=true,
-            CreatedAt=DateTime.UtcNow
+        var user = new User
+        {
+            FullName = request.FullName,
+            Email = request.Email,
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
+            Role = Enums.UserRole.Staff,
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
         };
 
         await _userRepository.AddAsync(user);
         await _userRepository.SaveChangesAsync();
-        
+
         return new UserDto
         {
-            Id=user.Id,
-            FullName=user.FullName,
-            Email=user.Email,
-            Role=user.Role.ToString(),
-            IsActive=user.IsActive
+            Id = user.Id,
+            FullName = user.FullName,
+            Email = user.Email,
+            Role = user.Role.ToString(),
+            IsActive = user.IsActive
         };
-    }   
+    }
 
     public async Task<IEnumerable<UserDto>> GetAllStaffAsync()
     {
-        var users=await _userRepository.GetAllStaffAsync();
-        
-        return users.Select(u=>new UserDto{
-            Id=u.Id,
-            FullName=u.FullName,
-            Email=u.Email,
-            Role=u.Role.ToString(),
-            IsActive=u.IsActive
+        var users = await _userRepository.GetAllStaffAsync();
+
+        return users.Select(u => new UserDto
+        {
+            Id = u.Id,
+            FullName = u.FullName,
+            Email = u.Email,
+            Role = u.Role.ToString(),
+            IsActive = u.IsActive
         });
     }
+    public async Task<UserDto> UpdateUserAsync(int id, UpdateUserDto request)
+    {
+        var user = await _userRepository.GetByIdAsync(id);
+        if (user == null)
+        {
+            throw new KeyNotFoundException(
+                "Staff member not found."
+            );
+        }
+
+        if (user.Role != Enums.UserRole.Staff)
+        {
+            throw new ArgumentException(
+                "Only staff members can be updated."
+            );
+        }
+
+        var existingUser = await _userRepository.GetByEmailAsync(request.Email);
+
+        if (existingUser != null && existingUser.Id != id)
+        {
+            throw new Exception("Email Already Exists");
+        }
+
+        user.Email = request.Email;
+        user.FullName = request.FullName;
+
+        _userRepository.Update(user);
+        await _userRepository.SaveChangesAsync();
+        return new UserDto
+        {
+            Id = user.Id,
+            FullName = user.FullName,
+            Email = user.Email,
+            Role = user.Role.ToString(),
+            IsActive = user.IsActive
+        };
+    }
+
+    public async Task<UserDto> ToggleStatusAsync(int id)
+    {
+        var user = await _userRepository.GetByIdAsync(id);
+
+        if (user == null)
+        {
+            throw new KeyNotFoundException(
+                "Staff member not found."
+            );
+        }
+
+        if (user.Role != UserRole.Staff)
+        {
+            throw new ArgumentException(
+                "Only staff members can be activated or deactivated."
+            );
+        }
+        user.IsActive = !user.IsActive;
+        await _userRepository.SaveChangesAsync();
+        return UserMapper.ToDto(user);
+    }
+
 }

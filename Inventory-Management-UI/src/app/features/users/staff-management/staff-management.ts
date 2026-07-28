@@ -1,9 +1,11 @@
-import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { UserService } from '../../../core/services/user';
 import { User } from '../../../core/models/user.model';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { CreateUser } from '../../../core/models/create-user.model';
+import { UpdateUser } from '../../../core/models/update-user.model';
+// import { Modal } from 'bootstrap';
 
 @Component({
   selector: 'app-staff-management',
@@ -13,19 +15,19 @@ import { CreateUser } from '../../../core/models/create-user.model';
 })
 export class StaffManagement implements OnInit {
 
-  users: User[] = [];
-  loading = true;
-  errorMessage = '';
-  successMessage = '';
+  users = signal<User[]>([]);
+  loading = signal(true);
+  errorMessage = signal("");
+  successMessage = signal("");
 
-  private fb = inject(FormBuilder);
+  editingUserId = signal<number | null>(null);
+  isEditMode = signal(false);
 
-  constructor(
-    private userService: UserService,
-    private cdr: ChangeDetectorRef
-  ) {}
+  private fb = inject(FormBuilder)
+  constructor(private userService: UserService) { }
 
   ngOnInit() {
+    // console.log("Content loaded in the onint")
     this.loadUsers();
   }
 
@@ -33,22 +35,17 @@ export class StaffManagement implements OnInit {
     this.userService.getAllStaff().subscribe({
       next: (response) => {
 
-        console.log('Response:', response);
+        this.users.set(response.data);
 
-        this.users = response.data;
+        this.loading.set(false);
 
-        console.log('Users after assignment:', this.users);
-
-        this.loading = false;
-
-        // Force Angular to update the UI
-        this.cdr.detectChanges();
       },
       error: (err) => {
-        console.error(err);
-        this.loading = false;
 
-        this.cdr.detectChanges();
+        console.error(err);
+
+        this.loading.set(false);
+
       }
     });
   }
@@ -57,32 +54,26 @@ export class StaffManagement implements OnInit {
     if (this.staffForm.invalid) {
       return;
     }
-
     this.userService.createStaff(
       this.staffForm.value as CreateUser
     ).subscribe({
       next: () => {
 
+
         this.loadUsers();
 
-        this.staffForm.reset();
 
-        this.errorMessage = '';
-
-        this.successMessage = 'Staff created successfully.';
-
-        this.cdr.detectChanges();
+        this.resetForm();
+        this.errorMessage.set('');
+        this.successMessage.set('Staff created successfully.');
       },
       error: (err) => {
-
-        this.successMessage = '';
-
-        this.errorMessage = err.error.message;
-
-        this.cdr.detectChanges();
+        this.successMessage.set('');
+        this.errorMessage.set(err.error.message);
       }
-    });
+    })
   }
+
 
   staffForm = this.fb.group({
     fullName: [
@@ -91,12 +82,114 @@ export class StaffManagement implements OnInit {
     ],
     email: [
       '',
-      [Validators.required, Validators.email]
+      [Validators.required,
+      Validators.email]
     ],
     password: [
       '',
-      [Validators.required, Validators.minLength(6)]
+      [Validators.required,
+      Validators.minLength(6)]
     ],
-  });
+  })
 
+  editUser(user: User) {
+    this.staffForm.patchValue({
+      fullName: user.fullName,
+      email: user.email,
+      password: ""
+    });
+
+    this.staffForm.get('password')?.clearValidators();
+    this.staffForm.get('password')?.updateValueAndValidity();
+
+    this.editingUserId.set(user.id);
+    this.isEditMode.set(true);
+  }
+
+  updateStaff() {
+    if (this.staffForm.invalid) {
+      return;
+    }
+
+    const request: UpdateUser = {
+      fullName: this.staffForm.value.fullName!,
+      email: this.staffForm.value.email!
+    }
+
+    this.userService.updateStaff(this.editingUserId()!, request)
+      .subscribe({
+        next: (response) => {
+          this.users.update(users =>
+            users.map(user =>
+              user.id === response.data.id ? response.data : user
+            ))
+          this.successMessage.set("Staff Update Successfull");
+          this.staffForm.reset()
+          this.isEditMode.set(false)
+          this.editingUserId.set(null)
+
+          // const modalElement = document.getElementById('staffModal');
+
+          // if (modalElement) {
+          //   const modal =
+          //     Modal.getInstance(modalElement) ??
+          //     new Modal(modalElement);
+
+          //   modal.hide();
+          // }
+
+        },
+        error: (err) => {
+          this.successMessage.set("");
+          this.errorMessage.set(err.error.message);
+
+        }
+      })
+  }
+
+  saveUser() {
+    if (this.isEditMode()) {
+      this.updateStaff();
+    } else {
+      this.createStaff();
+    }
+  }
+
+  resetForm() {
+    this.staffForm.reset();
+
+    this.staffForm.get('password')?.setValidators([
+      Validators.required,
+      Validators.minLength(6)
+    ]);
+
+    this.staffForm.get('password')?.updateValueAndValidity();
+
+    this.isEditMode.set(false);
+    this.editingUserId.set(null);
+    this.errorMessage.set('');
+    this.successMessage.set('');
+  }
+
+  toggleStatus(user: User) {
+    const confirmed = confirm(`Do You want to ${user.isActive ? "Deactivate" : "Activate"} ${user.fullName} `);
+    if (!confirmed) return
+
+    this.userService.toggleStatus(user.id)
+      .subscribe({
+        next: (response) => {
+            this.users.update(users =>
+            users.map(u =>
+              u.id === response.data.id ? response.data : u
+            )
+          )
+          this.successMessage.set(response.message);
+          this.errorMessage.set('');
+        },
+        error: (err) => {
+          this.successMessage.set('');
+          this.errorMessage.set(err.error.message);
+        }
+      })
+  }
 }

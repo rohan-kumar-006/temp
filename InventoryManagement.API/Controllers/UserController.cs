@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using InventoryManagement.API.Common;
 using InventoryManagement.API.DTOs.Users;
 using InventoryManagement.API.Models;
@@ -7,6 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.Identity.Client;
 
 namespace InventoryManagement.API.Controllers;
 
@@ -46,4 +48,31 @@ public class UserController:ControllerBase
             users
         ));
     }
+
+    [HttpPut("{id}")]
+    public async Task<ActionResult<ApiResponse<UserDto>>> UpdateStaff(int id,UpdateUserDto request)
+    {
+        var user= await _userService.UpdateUserAsync(id,request);
+        return Ok(new ApiResponse<UserDto>(
+            true,
+            "User Update Successfully",
+            user
+        ));
+    }
+
+    [HttpPatch("{id}/status")]
+    public async Task<ActionResult<ApiResponse<UserDto>>> ToggleStatus(int id)
+    {   
+        var user=await _userService.ToggleStatusAsync(id);
+
+        string message=user.IsActive ? "Staff activated successfully." : "Staff Dactivated successfully." ;
+        Debug.WriteLine("Route hit");
+        return Ok(
+            new ApiResponse<UserDto>(
+            true,
+            message,
+            user
+        ));
+    }
+
 }

@@ -4,24 +4,24 @@
 
         <h3>Staff Management</h3>
 
-        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#staffModal">
+        <button class="btn btn-primary" (click)="resetForm()" data-bs-toggle="modal" data-bs-target="#staffModal">
 
             Add Staff
 
         </button>
 
     </div>
-    <div class="text-center" *ngIf="loading">
+    <div class="text-center" *ngIf="loading()">
 
         Loading...
 
     </div>
-    <div class="alert alert-danger" *ngIf="errorMessage">
-        {{ errorMessage }}
+    <div class="alert alert-danger" *ngIf="errorMessage()">
+        {{ errorMessage() }}
     </div>
 
-    <div class="alert alert-success" *ngIf="successMessage">
-        {{ successMessage }}
+    <div class="alert alert-success" *ngIf="successMessage()">
+        {{ successMessage() }}
     </div>
 
     <table class="table table-bordered table-hover">
@@ -45,7 +45,7 @@
         </thead>
 
         <tbody>
-            <tr *ngIf="users.length===0">
+            <tr *ngIf="users().length===0">
 
                 <td colspan="4" class="text-center">
 
@@ -55,7 +55,7 @@
 
             </tr>
 
-            <tr *ngFor="let user of users">
+            <tr *ngFor="let user of users()">
 
                 <td>{{user.fullName}}</td>
 
@@ -77,13 +77,13 @@
 
                 <td>
 
-                    <button class="btn btn-warning btn-sm me-2">
+                    <button class="btn btn-warning btn-sm me-2" (click)="editUser(user)" data-bs-toggle="modal" data-bs-target="#staffModal"> 
 
                         Edit
 
                     </button>
 
-                    <button class="btn btn-secondary btn-sm">
+                    <button class="btn btn-secondary btn-sm" (click)="toggleStatus(user)">
 
                         {{user.isActive
                         ?'Deactivate'
@@ -109,7 +109,9 @@
 
             <div class="modal-header">
 
-                <h5>Add Staff</h5>
+                <h5>
+                    {{isEditMode() ? "Edit Staff": "Add Staff"}}
+                </h5>
 
             </div>
 
@@ -132,7 +134,7 @@
 
                     </div>
 
-                    <div class="mb-3">
+                    <div *ngIf="!isEditMode()" class="mb-3">
 
                         <label>Password</label>
 
@@ -145,15 +147,15 @@
 
             <div class="modal-footer">
 
-                <button class="btn btn-secondary" data-bs-dismiss="modal">
+                <button class="btn btn-secondary" (click)="resetForm()" data-bs-dismiss="modal">
 
                     Cancel
 
                 </button>
 
-                <button class="btn btn-primary" [disabled]="staffForm.invalid" (click)="createStaff()">
+                <button class="btn btn-primary" [disabled]="staffForm.invalid" (click)="saveUser()">
 
-                    Save
+                    {{isEditMode() ? 'Update' : 'Save'}}
 
                 </button>
 
