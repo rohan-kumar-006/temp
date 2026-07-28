@@ -4,16 +4,11 @@ namespace InventoryManagement.API.Repositories.Interfaces;
 
 public interface IProductRepository
 {
-    Task<IEnumerable<Product>> GetAllAsync();
-
-    Task<Product?> GetByIdAsync(int id);
-
     Task AddAsync(Product product);
+    Task<Product?> GetByIdAsync(int id);
+    Task<Product?> GetBySkuAsync(string sku);
 
     void Update(Product product);
-    void Delete(Product product);
-
-    Task<bool> ExistsBySkuAsync(string sku);
-
+    void Remove(Product product);
     Task SaveChangesAsync();
 }

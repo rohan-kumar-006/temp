@@ -1,6 +1,29 @@
+using Microsoft.AspNetCore.Http;
+using System.ComponentModel.DataAnnotations;
+
+namespace InventoryManagement.API.DTOs.Products;
+
 public class CreateProductDto
 {
-    public string Name{get;set;}= String.Empty;
-    public string SKU{get;set;}= String.Empty;
+    [Required]
+    [MaxLength(100)]
+    public string Name { get; set; } = string.Empty;
 
+    [Required]
+    [MaxLength(50)]
+    public string SKU { get; set; } = string.Empty;
+
+    [MaxLength(500)]
+    public string Description { get; set; } = string.Empty;
+
+    [Range(0.01, double.MaxValue)]
+    public decimal Price { get; set; }
+
+    [Range(0, int.MaxValue)]
+    public int InitialQuantity { get; set; }
+
+    [Range(0, int.MaxValue)]
+    public int ReorderLevel { get; set; }
+
+    public IFormFile? Image { get; set; }
 }
