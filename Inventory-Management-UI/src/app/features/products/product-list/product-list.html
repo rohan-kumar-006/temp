@@ -1,0 +1,203 @@
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Products</h2>
+        <button class="btn btn-primary">
+            Add Product
+        </button>
+    </div>
+    <div class="row mb-3">
+        <div class="col-md-4">
+
+            <input type="text" class="form-control" placeholder="Search..." [value]="search()"
+                (input)="onSearch($event)">
+
+        </div>
+    </div>
+    <div *ngIf="loading()" class="text-center">
+
+        <div class="spinner-border">
+        </div>
+
+    </div>
+    <div class="d-flex justify-content-between my-3 align-items-center">
+        <p class="text-muted">
+            Showing
+            {{ products().length }}
+            of
+            {{ totalItems() }}
+            products
+        </p>
+        <div class="d-flex align-items-center">
+
+            <label class="me-2 mb-0">Show</label>
+
+            <select class="form-select" style="width:100px" (change)="changePageSize($event)">
+
+                <option value="10">10</option>
+                <option value="20">20</option>
+                <option value="50">50</option>
+
+            </select>
+        </div>
+    </div>
+
+    <div class="row mb-3 d-flex">
+        
+        <div class="col-md-2">
+
+            <input type="number" [value]="minPrice() ?? '' " class="form-control" placeholder="Min Price"
+                (input)="changeMinPrice($event)">
+
+        </div>
+
+        <div class="col-md-2">
+
+            <input type="number" [value]="maxPrice() ?? '' " class="form-control" placeholder="Max Price"
+                (input)="changeMaxPrice($event)">
+
+
+        </div>
+
+        <div class="col-md-3">
+
+            <div class="form-check mt-2">
+
+                <input class="form-check-input" type="checkbox" (change)="toggleLowStock($event)">
+
+                <label class="form-check-label">
+
+                    Low Stock Only
+
+                </label>
+
+            </div>
+
+
+        </div>
+
+        <button class="btn btn-outline-secondary" style="width: 150px;" (click)="clearFilters()">
+
+            Clear Filters
+
+        </button>
+
+    </div>
+
+    <table class="table table-bordered table-hover" *ngIf="!loading()">
+        <thead>
+            <tr>
+                <th>Image</th>
+
+
+                <th role="button" (click)="sort('name')">
+                    Name
+                    <span *ngIf="sortBy() === 'name'">
+                        {{ descending() ? '▼' : '▲' }}
+                    </span>
+                </th>
+
+
+                <th>SKU</th>
+                <th role="button" (click)="sort('price')">
+                    Price
+                    <span *ngIf="sortBy() === 'price'">
+                        {{ descending() ? '▼' : '▲' }}
+                    </span>
+                </th>
+
+                <th role="button" (click)="sort('quantity')">
+                    Quantity
+                    <span *ngIf="sortBy() === 'quantity'">
+                        {{ descending() ? '▼' : '▲' }}
+                    </span>
+                </th>
+                <th role="button" (click)="sort('createdAt')">
+                    Created
+                    <span *ngIf="sortBy() === 'createdAt'">
+                        {{ descending() ? '▼' : '▲' }}
+                    </span>
+                </th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr *ngIf="products().length === 0">
+                <td colspan="7" class="text-center">
+                    No products found.
+                </td>
+            </tr>
+
+            <tr *ngFor="let product of products()">
+                <td>
+                    <img *ngIf="product.imageUrl" [src]="apiBaseUrl + product.imageUrl" width="50" height="50"
+                        class="rounded">
+                </td>
+                <td>
+                    {{product.name}}
+                </td>
+                <td>
+                    {{product.sku}}
+                </td>
+                <td>
+                    {{product.price | currency:'INR'}}
+                </td>
+
+                <td>
+                    {{product.quantity}}
+                    <span *ngIf="product.quantity <= product.reorderLevel" class="badge bg-danger ms-2">
+                        Low Stock
+                    </span>
+                </td>
+
+                <td>
+                    {{product.createdBy}}
+                </td>
+                <td>
+                    <button class="btn btn-sm btn-warning">
+                        Edit
+                    </button>
+                    <button class="btn btn-sm btn-danger ms-2">
+                        Delete
+                    </button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <nav *ngIf="totalPages() > 1">
+
+        <ul class="pagination justify-content-center">
+
+            <li class="page-item" [class.disabled]="page()===1">
+
+                <button class="page-link" (click)="previousPage()">
+
+                    Previous
+
+                </button>
+
+            </li>
+
+            <li *ngFor="let p of pagesList" class="page-item" [class.active]="p===page()">
+
+                <button class="page-link" (click)="goToPage(p)">
+
+                    {{p}}
+
+                </button>
+
+            </li>
+
+            <li class="page-item" [class.disabled]="page()===totalPages()">
+
+                <button class="page-link" (click)="nextPage()">
+
+                    Next
+
+                </button>
+
+            </li>
+
+        </ul>
+
+    </nav>
+</div>

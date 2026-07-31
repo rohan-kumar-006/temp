@@ -6,6 +6,7 @@ import { LoginResponse } from '../models/login-response.model';
 import { Observable } from 'rxjs';
 import { ApiResponse } from '../models/app-response.model';
 
+
 @Injectable({
   providedIn: 'root',
 })
@@ -27,10 +28,23 @@ export class AuthService {
     getToken(){
       return localStorage.getItem("token");
     }
+    saveRole(role:string){
+      localStorage.setItem("role",role);
+    }
+
+    getRole() : string | null{
+      return localStorage.getItem("role");
+    }
+    isAdmin():boolean{
+      return this.getRole()=="Admin";
+    }
+
     isLoggedIn():boolean{
       return !!localStorage.getItem("token")
     }
+
     logout(){
       localStorage.removeItem("token");
+      localStorage.removeItem("role");
     }
 }

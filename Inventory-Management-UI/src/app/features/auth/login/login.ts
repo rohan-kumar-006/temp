@@ -38,7 +38,7 @@ export class Login {
                 this.authService.saveToken(response.data.token);
 
                 this.router.navigate(['/dashboard']);
-
+                this.authService.saveRole(response.data.role);
             },
 
             error:(error)=>{

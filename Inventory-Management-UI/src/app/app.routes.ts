@@ -4,6 +4,8 @@ import { Dashboard } from './features/dashboard/dashboard/dashboard';
 import { authGuard } from './core/guards/auth-guard';
 import { StaffManagement } from './features/users/staff-management/staff-management';
 import { loginGuard } from './core/guards/login-guard';
+import { adminGuard } from './core/guards/admin-guard';
+import { ProductList } from './features/products/product-list/product-list';
 
 export const routes: Routes = [
     {
@@ -24,6 +26,11 @@ export const routes: Routes = [
     {
         path: 'users',
         component: StaffManagement,
-        canActivate:[authGuard]
+        canActivate:[authGuard,adminGuard]
+    },
+    {
+        path: 'products',
+        component: ProductList,
+        canActivate:[authGuard,adminGuard]
     }
 ];
