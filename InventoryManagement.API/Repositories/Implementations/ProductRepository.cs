@@ -24,7 +24,7 @@ public class ProductRepository : IProductRepository
         if (!String.IsNullOrWhiteSpace(parameters.Search))
         {
             var search = parameters.Search.Trim();
-            query = query.Where(p => p.Name == search || p.SKU == search);
+            query = query.Where(p => p.Name.Contains(search) || p.SKU.Contains(search));
         }
 
         if (parameters.MinPrice.HasValue)
@@ -97,6 +97,18 @@ public class ProductRepository : IProductRepository
     {
         return await _context.Products
             .FirstOrDefaultAsync(p => p.SKU == sku);
+    }
+
+    public async Task<bool> HasTransactionsAsync(int productId)
+    {
+        return await _context.StockTransactions.AnyAsync(
+            st=>st.ProductId==productId
+        );
+    }    
+    public Task DeleteAsync(Product product)
+    {
+        _context.Products.Remove(product);
+        return Task.CompletedTask;
     }
 
     public void Update(Product product)

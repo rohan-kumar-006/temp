@@ -81,4 +81,60 @@ public class ProductService : IProductService
             TotalPages = result.TotalPages
         };
     }
+    public async Task<ProductDto> UpdateProductAsync(int id, UpdateProductDto request)
+    {
+        var product = await _productRepository.GetByIdAsync(id);
+        if (product == null)
+        {
+            throw new KeyNotFoundException("Product not found.");
+        }
+
+        var existingProduct = await _productRepository.GetBySkuAsync(request.SKU);
+
+        if (existingProduct != null && existingProduct.Id != id)
+        {
+            throw new ArgumentException("SKU already exists.");
+        }
+
+        product.Name = request.Name;
+
+        product.SKU = request.SKU;
+
+        product.Description = request.Description;
+
+        product.Price = request.Price;
+
+        product.ReorderLevel = request.ReorderLevel;
+
+        product.UpdatedAt = DateTime.UtcNow;
+        if (request.Image != null)
+        {
+            product.ImageUrl =
+                await _fileService.SaveImageAsync(request.Image);
+        }
+        await _productRepository.SaveChangesAsync();
+        return ProductMapper.MapToProductDto(product);
+    }
+    public async Task DeleteProductAsync(int id)
+    {
+        var product = await _productRepository.GetByIdAsync(id);
+
+        if (product == null)
+        {
+            throw new KeyNotFoundException("Product not found.");
+        }
+        var hasTransactions =
+            await _productRepository.HasTransactionsAsync(id);
+
+        if (hasTransactions)
+        {
+            throw new InvalidOperationException(
+                "Cannot delete a product that has stock transactions."
+            );
+        }
+        await _productRepository.DeleteAsync(product);
+
+        await _productRepository.SaveChangesAsync();
+
+    }
 }

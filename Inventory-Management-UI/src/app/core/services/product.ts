@@ -64,7 +64,27 @@ export class ProductService {
 
     return this.http.get<ApiResponse<PagedResult<Product>>>(
       `${this.apiUrl}/products`,
-      {params}
+      { params }
     );
+  }
+
+  createProduct(formData: FormData) {
+    return this.http.post<ApiResponse<Product>>(
+      `${this.apiUrl}/products`,
+      formData
+    );
+  }
+  updateProduct(id: number, formData: FormData) {
+    return this.http.put<ApiResponse<Product>>(
+      `${this.apiUrl}/products/${id}`,
+      formData
+    );
+  }
+  deleteProduct(id: number) {
+
+    return this.http.delete<ApiResponse<null>>(
+      `${this.apiUrl}/products/${id}`
+    );
+
   }
 }

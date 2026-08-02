@@ -10,6 +10,10 @@ public interface IProductRepository
     Task<Product?> GetByIdAsync(int id);
     Task<Product?> GetBySkuAsync(string sku);
     Task<PagedResult<Product>> GetProductsAsync(ProductQueryParameters parameters);
+    Task<bool> HasTransactionsAsync(int productId);
+
+    Task DeleteAsync(Product product);
+    // Task UpdateAsync(Product product);
     void Update(Product product);
     void Remove(Product product);
     Task SaveChangesAsync();

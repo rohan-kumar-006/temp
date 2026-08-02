@@ -3,28 +3,101 @@ import { Product } from '../../../core/models/product-model';
 import { ProductQuery } from '../../../core/models/product-query-model';
 import { ProductService } from '../../../core/services/product';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { environment } from '../../../../environments/environment';
 import { debounceTime, distinctUntilChanged, Subject, Subscription } from 'rxjs';
-import { validate } from '@angular/forms/signals';
+import { Modal } from 'bootstrap';
 
 @Component({
   selector: 'app-product-list',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule],
   templateUrl: './product-list.html',
   styleUrl: './product-list.css',
 })
-export class ProductList implements OnInit {
+export class ProductList implements OnInit, OnDestroy {
   // const productServices=inject(Product);
   constructor(private productServices: ProductService) { }
   private searchSubject = new Subject<string>();
   private searchSubscription?: Subscription;
+  private fb = inject(FormBuilder)
 
+  private buildFormData(): FormData {
+
+    const formData = new FormData();
+
+    formData.append(
+      'name',
+      this.productForm.value.name!
+    );
+
+    formData.append(
+      'sku',
+      this.productForm.value.sku!
+    );
+
+    formData.append(
+      'description',
+      this.productForm.value.description ?? ''
+    );
+
+    formData.append(
+      'price',
+      this.productForm.value.price!.toString()
+    );
+
+    formData.append(
+      'reorderLevel',
+      this.productForm.value.reorderLevel!.toString()
+    );
+
+    if (!this.isEditMode()) {
+
+      formData.append(
+        'initialQuantity',
+        this.productForm.value.initialQuantity!.toString()
+      );
+
+    }
+
+    if (this.selectedImage()) {
+
+      formData.append(
+        'image',
+        this.selectedImage()!
+      );
+
+    }
+
+    return formData;
+
+  }
+
+  private closeModal(modalId: string) {
+
+    const modalElement =
+      document.getElementById(modalId);
+
+    if (!modalElement)
+      return;
+
+    const modal =
+      Modal.getInstance(modalElement)
+      ?? new Modal(modalElement);
+
+    modal.hide();
+    setTimeout(() => {
+      document.body.classList.remove('modal-open');
+      document.body.style.removeProperty('overflow');
+      document.body.style.removeProperty('padding-right');
+      document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+    }, 300);
+
+  }
   ngOnInit(): void {
     this.setupSearch();
     this.loadProducts();
   }
-  ngOnDestroy() :void{
+  ngOnDestroy(): void {
     this.searchSubscription?.unsubscribe()
   }
 
@@ -41,13 +114,23 @@ export class ProductList implements OnInit {
   totalItems = signal(0);
 
   search = signal("");
-  sortBy = signal("");
+  sortBy = signal("name");
   descending = signal(false);
 
-  minPrice=signal<number | null>(null);
-  maxPrice=signal<number | null>(null);
-  lowStockOnly=signal(false);
+  minPrice = signal<number | null>(null);
+  maxPrice = signal<number | null>(null);
+  lowStockOnly = signal(false);
 
+  //neeche sirf signals for modal hai
+
+  isEditMode = signal(false)
+  editingProductId = signal<number | null>(null)
+  selectedImage = signal<File | null>(null)
+  imagePreview = signal<string | null>(null)
+
+  //neece delete ke liye signals hai 
+  deletingProductId = signal<number | null>(null);
+  deletingProductName = signal("");
 
   get query(): ProductQuery {
     return {
@@ -56,9 +139,9 @@ export class ProductList implements OnInit {
       search: this.search(),
       sortBy: this.sortBy(),
       descending: this.descending(),
-      minPrice:this.minPrice()??undefined,
-      maxPrice:this.maxPrice  ()??undefined,
-      lowStockOnly:this.lowStockOnly()
+      minPrice: this.minPrice() ?? undefined,
+      maxPrice: this.maxPrice() ?? undefined,
+      lowStockOnly: this.lowStockOnly()
     };
   };
 
@@ -78,6 +161,7 @@ export class ProductList implements OnInit {
           this.successMessage.set(response.message)
           this.errorMessage.set("")
           this.loading.set(false);
+          console.log(this.products())
         },
         error: (err) => {
           this.errorMessage.set(
@@ -124,7 +208,7 @@ export class ProductList implements OnInit {
   }
 
   private setupSearch() {
-    this.searchSubscription=this.searchSubject
+    this.searchSubscription = this.searchSubject
       .pipe(
         debounceTime(400),
         distinctUntilChanged()
@@ -144,11 +228,11 @@ export class ProductList implements OnInit {
     // this.loadProducts()
   }
 
-  sort(column:string){
-    if(this.sortBy()==column){
-      this.descending.update(value=>!value)
+  sort(column: string) {
+    if (this.sortBy() == column) {
+      this.descending.update(value => !value)
     }
-    else{
+    else {
       // this.descending.update(value=>!validate)
       this.sortBy.set(column)
       this.descending.set(false)
@@ -157,25 +241,25 @@ export class ProductList implements OnInit {
     this.loadProducts();
   }
 
-  changeMinPrice(event:Event){
-    const value= Number((event.target as HTMLInputElement).value);
+  changeMinPrice(event: Event) {
+    const value = Number((event.target as HTMLInputElement).value);
     this.minPrice.set(value || null)
     this.page.set(1)
     this.loadProducts()
   }
-  changeMaxPrice(event:Event){
-    const value= Number((event.target as HTMLInputElement).value);
+  changeMaxPrice(event: Event) {
+    const value = Number((event.target as HTMLInputElement).value);
     this.maxPrice.set(value || null)
     this.page.set(1)
     this.loadProducts()
   }
-  toggleLowStock(event:Event){
-    const checked=(event.target as HTMLInputElement).checked
+  toggleLowStock(event: Event) {
+    const checked = (event.target as HTMLInputElement).checked
     this.lowStockOnly.set(checked)
     this.page.set(1)
     this.loadProducts()
   }
-  clearFilters(){
+  clearFilters() {
     this.maxPrice.set(null);
     this.minPrice.set(null);
     this.lowStockOnly.set(false);
@@ -184,5 +268,204 @@ export class ProductList implements OnInit {
     this.descending.set(false)
     this.page.set(1)
     this.loadProducts()
+  }
+
+  //Modal Part
+
+  productForm = this.fb.group({
+    name: [
+      "",
+      Validators.required
+    ],
+    sku: [
+      "",
+      Validators.required
+    ],
+    description: [
+      ""
+    ],
+    price: [
+      0, [
+        Validators.required,
+        Validators.min(0)
+      ]
+    ],
+    initialQuantity: [
+      0,
+      [
+        Validators.required,
+        Validators.min(0)
+      ]
+    ],
+
+    reorderLevel: [
+      0,
+      [
+        Validators.required,
+        Validators.min(0)
+      ]
+    ],
+  })
+  onImageSelected(event: Event) {
+
+    const input = event.target as HTMLInputElement;
+    if (!input.files?.length) return;
+
+    const file = input.files[0]
+    this.selectedImage.set(file)
+
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      this.imagePreview.set(
+        reader.result as string
+      );
+    }
+
+    reader.readAsDataURL(file)
+
+  }
+
+  resetForm() {
+
+    this.productForm.reset({
+      price: 0,
+      initialQuantity: 0,
+      reorderLevel: 0
+    })
+
+    this.selectedImage.set(null);
+    this.imagePreview.set(null);
+    this.isEditMode.set(false);
+    this.editingProductId.set(null);
+    this.errorMessage.set('');
+    this.successMessage.set('');
+  }
+
+  createProduct() {
+
+    if (this.productForm.invalid)
+      return;
+
+    const formData =
+      this.buildFormData();
+
+    this.productServices
+      .createProduct(formData)
+      .subscribe({
+
+        next: response => {
+
+          this.successMessage.set(
+            response.message
+          );
+
+          this.errorMessage.set('');
+
+          this.loadProducts();
+
+          this.resetForm();
+          this.closeModal("productModal");
+
+        },
+
+        error: err => {
+
+          this.successMessage.set('');
+
+          this.errorMessage.set(
+            err.error.message
+          );
+
+        }
+      });
+  }
+
+  editProduct(product: Product) {
+    this.isEditMode.set(true);
+    this.editingProductId.set(product.id);
+    this.selectedImage.set(null);
+    this.productForm.patchValue({
+      name: product.name,
+      sku: product.sku,
+      description: product.description,
+      price: product.price,
+      reorderLevel: product.reorderLevel
+    });
+    this.imagePreview.set(product.imageUrl ? this.apiBaseUrl + product.imageUrl : null);
+  }
+
+  saveProduct() {
+    if (this.isEditMode()) {
+      this.updateProduct();
+    }
+    else {
+      this.createProduct();
+    }
+  }
+  updateProduct() {
+    console.log("updateProduct called");
+    if (this.productForm.invalid)
+      return;
+    const formData = this.buildFormData();
+    this.productServices
+      .updateProduct(this.editingProductId()!, formData)
+      .subscribe({
+        next: (response) => {
+          this.products.update(products =>
+            products.map(product =>
+              product.id === response.data.id ? response.data : product
+            )
+          )
+          this.successMessage.set(
+            response.message
+          );
+          this.errorMessage.set('');
+          this.closeModal("productModal");
+          this.resetForm();
+        },
+        error: (err) => {
+          this.successMessage.set('');
+          this.errorMessage.set(err.error.message);
+        }
+      })
+  }
+  confirmDelete(product: Product) {
+    this.deletingProductId.set(product.id);
+    this.deletingProductName.set(product.name);
+  }
+  deleteProduct() {
+
+    const id = this.deletingProductId();
+
+    if (id == null)
+      return;
+    this.productServices
+
+      .deleteProduct(id)
+
+      .subscribe({
+        next: () => {
+          this.products.update(products =>
+            products.filter(product =>
+              product.id !== id
+            )
+          );
+          this.totalItems.update(
+            value => value - 1
+          );
+          this.successMessage.set(
+            "Product deleted successfully."
+          );
+          this.errorMessage.set("");
+          this.deletingProductId.set(null);
+          this.deletingProductName.set("");
+          this.closeModal("deleteProductModal");
+        },
+        error:(err)=>{
+          this.errorMessage.set(err.error?.message);
+          this.successMessage.set("");
+        }
+      });
   }
 }
