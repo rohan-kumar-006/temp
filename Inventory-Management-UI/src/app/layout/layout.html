@@ -1,0 +1,74 @@
+<div class="d-flex">
+
+    <div class="sidebar border-end bg-light p-3">
+
+        <h4 class="mb-4">
+            Inventory Management
+        </h4>
+
+        <div class="list-group">
+
+            <a
+                class="list-group-item list-group-item-action"
+                routerLink="/dashboard"
+                routerLinkActive="active">
+
+                Dashboard
+
+            </a>
+
+            <a
+                class="list-group-item list-group-item-action"
+                routerLink="/products"
+                routerLinkActive="active">
+
+                Products
+
+            </a>
+
+            <a
+                class="list-group-item list-group-item-action"
+                routerLink="/stock-management"
+                routerLinkActive="active">
+
+                Stock Management
+
+            </a>
+
+            <a
+                class="list-group-item list-group-item-action"
+                routerLink="/transactions"
+                routerLinkActive="active">
+
+                Transaction History
+
+            </a>
+
+            <a
+                class="list-group-item list-group-item-action"
+                routerLink="/users"
+                routerLinkActive="active">
+
+                Staff Management
+
+            </a>
+
+            <button
+                class="list-group-item list-group-item-action text-start"
+                (click)="logout()">
+
+                Logout
+
+            </button>
+
+        </div>
+
+    </div>
+
+    <div class="flex-grow-1 p-4">
+
+        <router-outlet></router-outlet>
+
+    </div>
+
+</div>

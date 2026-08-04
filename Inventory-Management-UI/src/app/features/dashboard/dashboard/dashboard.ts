@@ -10,16 +10,4 @@ import { Router } from '@angular/router';
 })
 export class Dashboard {
   
-  constructor(
-    private authService:AuthService,
-    private router:Router
-){}
-
-  logout(){
-
-    this.authService.logout();
-
-    this.router.navigate(['/login']);
-
-}
 }

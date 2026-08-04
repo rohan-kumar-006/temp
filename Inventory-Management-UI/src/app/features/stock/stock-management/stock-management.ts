@@ -9,6 +9,7 @@ import { debounceTime, distinctUntilChanged, Subject, Subscription } from 'rxjs'
 import { Modal } from 'bootstrap';
 import { StockTransactionService } from '../../../core/services/stock-transaction';
 import { CreateStockTransaction } from '../../../core/models/create-stock-transaction.model';
+import { ToastService } from '../../../core/services/toast';
 
 @Component({
   selector: 'app-stock-management',
@@ -18,7 +19,8 @@ import { CreateStockTransaction } from '../../../core/models/create-stock-transa
 })
 export class StockManagement implements OnInit, OnDestroy {
   // const productServices=inject(Product);
-  constructor(private productServices: ProductService, private stockService: StockTransactionService) { }
+  constructor(private productServices: ProductService, private stockService: StockTransactionService,
+    private toast: ToastService) { }
 
   private searchSubject = new Subject<string>();
   private searchSubscription?: Subscription;
@@ -43,11 +45,11 @@ export class StockManagement implements OnInit, OnDestroy {
   private openModal() {
     this.stockModalInstance?.show();
   }
-  
+
   private closeModalNow() {
     this.stockModalInstance?.hide();
   }
-  
+
   ngOnDestroy(): void {
     this.searchSubscription?.unsubscribe()
   }
@@ -59,8 +61,6 @@ export class StockManagement implements OnInit, OnDestroy {
 
   products = signal<Product[]>([]);
   loading = signal(false);
-  errorMessage = signal("");
-  successMessage = signal("");
 
   page = signal(1);
   pageSize = signal(10);
@@ -92,15 +92,13 @@ export class StockManagement implements OnInit, OnDestroy {
           this.totalItems.set(response.data.totalItems)
           this.totalPages.set(response.data.totalPages)
 
-          this.successMessage.set(response.message)
-          this.errorMessage.set("")
           this.loading.set(false);
           console.log(this.products())
         },
         error: (err) => {
-          this.errorMessage.set(
+          this.toast.error(
             err.error?.message ?? "Unable to load products"
-          )
+          );
           this.loading.set(false);
         }
       })
@@ -218,15 +216,13 @@ export class StockManagement implements OnInit, OnDestroy {
               product.id === response.data.product.id ? response.data.product : product
             )
           )
-          this.successMessage.set(response.message);
-          this.errorMessage.set('');
+          this.toast.success(response.message);
           this.resetTransactionForm();
           this.closeModalNow();
         },
         error: err => {
 
-          this.successMessage.set('');
-          this.errorMessage.set(
+          this.toast.error(
             err.error?.message ??
             "Transaction failed."
           );

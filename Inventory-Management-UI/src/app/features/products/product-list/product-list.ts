@@ -7,6 +7,7 @@ import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angu
 import { environment } from '../../../../environments/environment';
 import { debounceTime, distinctUntilChanged, Subject, Subscription } from 'rxjs';
 import { Modal } from 'bootstrap';
+import { ToastService } from '../../../core/services/toast';
 
 @Component({
   selector: 'app-product-list',
@@ -16,7 +17,7 @@ import { Modal } from 'bootstrap';
 })
 export class ProductList implements OnInit, OnDestroy {
   // const productServices=inject(Product);
-  constructor(private productServices: ProductService) { }
+  constructor(private productServices: ProductService, private toast: ToastService) { }
   private searchSubject = new Subject<string>();
   private searchSubscription?: Subscription;
   private fb = inject(FormBuilder)
@@ -105,8 +106,8 @@ export class ProductList implements OnInit, OnDestroy {
 
   products = signal<Product[]>([]);
   loading = signal(false);
-  errorMessage = signal("");
-  successMessage = signal("");
+  // errorMessage = signal("");
+  // successMessage = signal("");
 
   page = signal(1);
   pageSize = signal(10);
@@ -158,13 +159,11 @@ export class ProductList implements OnInit, OnDestroy {
           this.totalItems.set(response.data.totalItems)
           this.totalPages.set(response.data.totalPages)
 
-          this.successMessage.set(response.message)
-          this.errorMessage.set("")
           this.loading.set(false);
           console.log(this.products())
         },
         error: (err) => {
-          this.errorMessage.set(
+          this.toast.error(
             err.error?.message ?? "Unable to load products"
           )
           this.loading.set(false);
@@ -338,8 +337,6 @@ export class ProductList implements OnInit, OnDestroy {
     this.imagePreview.set(null);
     this.isEditMode.set(false);
     this.editingProductId.set(null);
-    this.errorMessage.set('');
-    this.successMessage.set('');
   }
 
   createProduct() {
@@ -355,12 +352,7 @@ export class ProductList implements OnInit, OnDestroy {
       .subscribe({
 
         next: response => {
-
-          this.successMessage.set(
-            response.message
-          );
-
-          this.errorMessage.set('');
+          this.toast.success(response.message);
 
           this.loadProducts();
 
@@ -370,13 +362,7 @@ export class ProductList implements OnInit, OnDestroy {
         },
 
         error: err => {
-
-          this.successMessage.set('');
-
-          this.errorMessage.set(
-            err.error.message
-          );
-
+          this.toast.error(err.error?.message ?? "Unable to create product");
         }
       });
   }
@@ -417,16 +403,15 @@ export class ProductList implements OnInit, OnDestroy {
               product.id === response.data.id ? response.data : product
             )
           )
-          this.successMessage.set(
-            response.message
-          );
-          this.errorMessage.set('');
+          this.toast.success(response.message);
           this.closeModal("productModal");
           this.resetForm();
         },
         error: (err) => {
-          this.successMessage.set('');
-          this.errorMessage.set(err.error.message);
+          this.toast.error(
+            err.error?.message ??
+            "Unable to update product"
+          );
         }
       })
   }
@@ -454,17 +439,18 @@ export class ProductList implements OnInit, OnDestroy {
           this.totalItems.update(
             value => value - 1
           );
-          this.successMessage.set(
+          this.toast.success(
             "Product deleted successfully."
           );
-          this.errorMessage.set("");
           this.deletingProductId.set(null);
           this.deletingProductName.set("");
           this.closeModal("deleteProductModal");
         },
-        error:(err)=>{
-          this.errorMessage.set(err.error?.message);
-          this.successMessage.set("");
+        error: (err) => {
+          this.toast.error(
+            err.error?.message ??
+            "Unable to delete product."
+          );
         }
       });
   }

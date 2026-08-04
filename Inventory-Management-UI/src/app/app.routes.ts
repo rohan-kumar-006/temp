@@ -1,42 +1,60 @@
 import { Routes } from '@angular/router';
+
 import { Login } from './features/auth/login/login';
 import { Dashboard } from './features/dashboard/dashboard/dashboard';
-import { authGuard } from './core/guards/auth-guard';
 import { StaffManagement } from './features/users/staff-management/staff-management';
-import { loginGuard } from './core/guards/login-guard';
-import { adminGuard } from './core/guards/admin-guard';
 import { ProductList } from './features/products/product-list/product-list';
 import { StockManagement } from './features/stock/stock-management/stock-management';
+import { Layout } from './layout/layout';
+
+import { authGuard } from './core/guards/auth-guard';
+import { loginGuard } from './core/guards/login-guard';
+import { adminGuard } from './core/guards/admin-guard';
 
 export const routes: Routes = [
-    {
-        path: "",
-        redirectTo: "login",
-        pathMatch: "full"
-    },
-    {
-        path: "login",
-        component: Login,
-        canActivate:[loginGuard]
-    },
-    {
+
+  {
+    path: '',
+    redirectTo: 'login',
+    pathMatch: 'full'
+  },
+
+  {
+    path: 'login',
+    component: Login,
+    canActivate: [loginGuard]
+  },
+
+  {
+    path: '',
+    component: Layout,
+    canActivate: [authGuard],
+
+    children: [
+
+      {
         path: 'dashboard',
-        component: Dashboard,
-        canActivate:[authGuard]
-    },
-    {
+        component: Dashboard
+      },
+
+      {
         path: 'users',
         component: StaffManagement,
-        canActivate:[authGuard,adminGuard]
-    },
-    {
+        canActivate: [adminGuard]
+      },
+
+      {
         path: 'products',
         component: ProductList,
-        canActivate:[authGuard,adminGuard]
-    },
-    {
+        canActivate: [adminGuard]
+      },
+
+      {
         path: 'stock-management',
-        component: StockManagement,
-        canActivate:[authGuard]
-    }
+        component: StockManagement
+      }
+
+    ]
+  }
+
 ];

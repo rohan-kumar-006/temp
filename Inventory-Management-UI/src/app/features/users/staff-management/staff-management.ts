@@ -5,6 +5,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { CreateUser } from '../../../core/models/create-user.model';
 import { UpdateUser } from '../../../core/models/update-user.model';
+import { ToastService } from '../../../core/services/toast';
 // import { Modal } from 'bootstrap';
 
 @Component({
@@ -17,14 +18,12 @@ export class StaffManagement implements OnInit {
 
   users = signal<User[]>([]);
   loading = signal(true);
-  errorMessage = signal("");
-  successMessage = signal("");
 
   editingUserId = signal<number | null>(null);
   isEditMode = signal(false);
 
   private fb = inject(FormBuilder)
-  constructor(private userService: UserService) { }
+  constructor(private userService: UserService, private toast: ToastService) { }
 
   ngOnInit() {
     // console.log("Content loaded in the onint")
@@ -41,11 +40,12 @@ export class StaffManagement implements OnInit {
 
       },
       error: (err) => {
-
-        console.error(err);
-
         this.loading.set(false);
 
+        this.toast.error(
+          err.error?.message ??
+          "Unable to load staff."
+        );
       }
     });
   }
@@ -64,12 +64,13 @@ export class StaffManagement implements OnInit {
 
 
         this.resetForm();
-        this.errorMessage.set('');
-        this.successMessage.set('Staff created successfully.');
+        this.toast.success("Staff created successfully.");
       },
       error: (err) => {
-        this.successMessage.set('');
-        this.errorMessage.set(err.error.message);
+        this.toast.error(
+          err.error?.message ??
+          "Unable to create staff."
+        );
       }
     })
   }
@@ -123,26 +124,19 @@ export class StaffManagement implements OnInit {
             users.map(user =>
               user.id === response.data.id ? response.data : user
             ))
-          this.successMessage.set("Staff Update Successfull");
+          this.toast.success(
+            "Staff updated successfully."
+          );
           this.staffForm.reset()
           this.isEditMode.set(false)
           this.editingUserId.set(null)
 
-          // const modalElement = document.getElementById('staffModal');
-
-          // if (modalElement) {
-          //   const modal =
-          //     Modal.getInstance(modalElement) ??
-          //     new Modal(modalElement);
-
-          //   modal.hide();
-          // }
-
         },
         error: (err) => {
-          this.successMessage.set("");
-          this.errorMessage.set(err.error.message);
-
+          this.toast.error(
+            err.error?.message ??
+            "Unable to update staff."
+          );
         }
       })
   }
@@ -167,8 +161,6 @@ export class StaffManagement implements OnInit {
 
     this.isEditMode.set(false);
     this.editingUserId.set(null);
-    this.errorMessage.set('');
-    this.successMessage.set('');
   }
 
   toggleStatus(user: User) {
@@ -178,17 +170,18 @@ export class StaffManagement implements OnInit {
     this.userService.toggleStatus(user.id)
       .subscribe({
         next: (response) => {
-            this.users.update(users =>
+          this.users.update(users =>
             users.map(u =>
               u.id === response.data.id ? response.data : u
             )
           )
-          this.successMessage.set(response.message);
-          this.errorMessage.set('');
+          this.toast.success(response.message);
         },
         error: (err) => {
-          this.successMessage.set('');
-          this.errorMessage.set(err.error.message);
+          this.toast.error(
+            err.error?.message ??
+            "Unable to update status."
+          );
         }
       })
   }
