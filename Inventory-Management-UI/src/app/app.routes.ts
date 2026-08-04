@@ -6,6 +6,7 @@ import { StaffManagement } from './features/users/staff-management/staff-managem
 import { loginGuard } from './core/guards/login-guard';
 import { adminGuard } from './core/guards/admin-guard';
 import { ProductList } from './features/products/product-list/product-list';
+import { StockManagement } from './features/stock/stock-management/stock-management';
 
 export const routes: Routes = [
     {
@@ -32,5 +33,10 @@ export const routes: Routes = [
         path: 'products',
         component: ProductList,
         canActivate:[authGuard,adminGuard]
+    },
+    {
+        path: 'stock-management',
+        component: StockManagement,
+        canActivate:[authGuard]
     }
 ];
