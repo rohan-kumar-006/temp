@@ -9,9 +9,11 @@ namespace InventoryManagement.API.Services.Implementations;
 public class UserService : IUserService
 {
     private readonly IUserRepository _userRepository;
-    public UserService(IUserRepository userRepository)
+    private readonly ILogger<UserService> _logger;
+    public UserService(IUserRepository userRepository, ILogger<UserService> logger)
     {
         _userRepository = userRepository;
+        _logger = logger;
     }
 
     public async Task<UserDto> CreateStaffAsync(CreateUserDto request)
@@ -35,6 +37,13 @@ public class UserService : IUserService
 
         await _userRepository.AddAsync(user);
         await _userRepository.SaveChangesAsync();
+
+        _logger.LogInformation(
+            "Staff account created. UserId: {UserId}, Email: {Email}",
+            user.Id,
+            user.Email
+        );
+
 
         return new UserDto
         {
@@ -88,6 +97,11 @@ public class UserService : IUserService
 
         _userRepository.Update(user);
         await _userRepository.SaveChangesAsync();
+        _logger.LogInformation(
+            "Staff account updated. UserId: {UserId}, Email: {Email}",
+            user.Id,
+            user.Email
+        );
         return new UserDto
         {
             Id = user.Id,
@@ -117,6 +131,12 @@ public class UserService : IUserService
         }
         user.IsActive = !user.IsActive;
         await _userRepository.SaveChangesAsync();
+        _logger.LogInformation(
+            "Staff account status changed. UserId: {UserId}, Email: {Email}, Status: {Status}",
+            user.Id,
+            user.Email,
+            user.IsActive ? "Active" : "Inactive"
+        );
         return UserMapper.ToDto(user);
     }
 

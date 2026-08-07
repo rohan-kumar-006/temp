@@ -1,5 +1,7 @@
 using System.Security.Claims;
+using InventoryManagement.API.DTOs.Products;
 using InventoryManagement.API.DTOs.StockTransactions;
+using InventoryManagement.API.DTOs.TransactionHistory;
 using InventoryManagement.API.Helpers.Implementations;
 using InventoryManagement.API.Models;
 using InventoryManagement.API.Repositories.Interfaces;
@@ -13,12 +15,14 @@ public class StockTransactionService : IStockTransactionService
     private readonly IProductRepository _productRepository;
     private readonly IStockTransactionRepository _stockRepository;
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly ILogger<StockTransactionService> _logger;
     public StockTransactionService(IProductRepository productRepository, IStockTransactionRepository stockRepository,
-    IHttpContextAccessor httpContextAccessor)
+    IHttpContextAccessor httpContextAccessor, ILogger<StockTransactionService> logger)
     {
         _productRepository = productRepository;
         _stockRepository = stockRepository;
         _httpContextAccessor = httpContextAccessor;
+        _logger = logger;
     }
 
     public async Task<StockTransactionResponseDto> CreateTransactionAsync([FromBody] CreateStockTransactionDto request)
@@ -64,9 +68,43 @@ public class StockTransactionService : IStockTransactionService
         };
         await _stockRepository.AddAsync(transaction);
         await _productRepository.SaveChangesAsync();
-        
-        return new StockTransactionResponseDto{
-            Product=ProductMapper.MapToProductDto(product)
+        _logger.LogInformation(
+            "Stock transaction created. ProductId: {ProductId}, ProductName: {ProductName}, Type: {Type}, Quantity: {Quantity}, UserId: {UserId}",
+            product.Id,
+            product.Name,
+            request.Type,
+            request.Quantity,
+            userId
+        );
+
+        return new StockTransactionResponseDto
+        {
+            Product = ProductMapper.MapToProductDto(product)
+        };
+    }
+
+    public async Task<PagedResult<TransactionHistoryDto>> GetTransactionHistoryAsync(TransactionHistoryQueryParameters parameters)
+    {
+        var result = await _stockRepository.GetTransactionHistoryAsync(parameters);
+
+        return new PagedResult<TransactionHistoryDto>
+        {
+            Items = result.Items.Select(t => new TransactionHistoryDto
+            {
+                Id = t.Id,
+                ProductName = t.Product!.Name,
+                SKU = t.Product.SKU,
+                Type = t.Type,
+                Quantity = t.Quantity,
+                Remarks = t.Remarks,
+                PerformedBy = t.User!.FullName,
+                CreatedAt = t.CreatedAt
+            }).ToList(),
+
+            Page = result.Page,
+            PageSize = result.PageSize,
+            TotalItems = result.TotalItems,
+            TotalPages = result.TotalPages
         };
     }
 }

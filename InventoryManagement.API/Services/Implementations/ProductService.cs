@@ -1,12 +1,9 @@
-using System.Diagnostics;
 using InventoryManagement.API.DTOs.Products;
 using InventoryManagement.API.DTOs.Products.Common;
 using InventoryManagement.API.Helpers.Implementations;
 using InventoryManagement.API.Models;
-using InventoryManagement.API.Repositories.Implementations;
 using InventoryManagement.API.Repositories.Interfaces;
 using InventoryManagement.API.Services.Interfaces;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace InventoryManagement.API.Services.Implementations;
 
@@ -15,12 +12,16 @@ public class ProductService : IProductService
     private readonly IProductRepository _productRepository;
     private readonly IUserRepository _userRepository;
     private readonly IFileService _fileService;
+    private readonly ILogger<ProductService> _logger;
 
-    public ProductService(IProductRepository productRepository, IUserRepository userRepository, IFileService fileService)
+
+    public ProductService(IProductRepository productRepository, IUserRepository userRepository,
+     IFileService fileService, ILogger<ProductService> logger)
     {
         _productRepository = productRepository;
         _userRepository = userRepository;
         _fileService = fileService;
+        _logger = logger;
     }
 
     public async Task<ProductDto> CreateProductAsync(CreateProductDto request, int createdByUserId)
@@ -60,7 +61,10 @@ public class ProductService : IProductService
 
         await _productRepository.AddAsync(product);
         await _productRepository.SaveChangesAsync();
-
+        _logger.LogInformation(
+                "Product created. Id: {ProductId}, Name: {ProductName}, CreatedBy: {UserId}",
+                product.Id, product.Name, createdByUserId
+        );
         // ProductMapper.e
         // product.CreatedByUser = user;
         return ProductMapper.MapToProductDto(product);
@@ -113,6 +117,9 @@ public class ProductService : IProductService
                 await _fileService.SaveImageAsync(request.Image);
         }
         await _productRepository.SaveChangesAsync();
+        
+        _logger.LogInformation( "Product updated. Id: {ProductId}, Name: {ProductName}", product.Id,product.Name);
+        
         return ProductMapper.MapToProductDto(product);
     }
     public async Task DeleteProductAsync(int id)
@@ -132,6 +139,8 @@ public class ProductService : IProductService
                 "Cannot delete a product that has stock transactions."
             );
         }
+
+        _logger.LogInformation("Product deleted. Id: {ProductId}, Name: {ProductName}", product.Id,product.Name);
         await _productRepository.DeleteAsync(product);
 
         await _productRepository.SaveChangesAsync();

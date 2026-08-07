@@ -9,7 +9,8 @@ using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
 [Route("api/products")]
-[Authorize(Roles = "Admin")]
+// [Authorize(Roles = "Admin")]
+[Authorize]
 public class ProductController : ControllerBase
 {
     private readonly IProductService _productService;
@@ -20,6 +21,7 @@ public class ProductController : ControllerBase
 
 
     [HttpPost]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<ApiResponse<ProductDto>>> CreateProduct([FromForm] CreateProductDto request)
     {
         var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
@@ -34,6 +36,7 @@ public class ProductController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize(Roles = "Staff,Admin")]
     public async Task<ActionResult<ApiResponse<PagedResult<ProductDto>>>> GetProducts([FromQuery] ProductQueryParameters parameters)
     {
         var products = await _productService.GetProductsAsync(parameters);

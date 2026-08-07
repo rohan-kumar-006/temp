@@ -10,6 +10,7 @@ import { Layout } from './layout/layout';
 import { authGuard } from './core/guards/auth-guard';
 import { loginGuard } from './core/guards/login-guard';
 import { adminGuard } from './core/guards/admin-guard';
+import { TransactionHistory } from './features/transaction-history/transaction-history';
 
 export const routes: Routes = [
 
@@ -52,8 +53,12 @@ export const routes: Routes = [
       {
         path: 'stock-management',
         component: StockManagement
+      },
+      {
+        path: 'transaction-history',
+        component: TransactionHistory,
+        canActivate: [authGuard]
       }
-
     ]
   }
 
