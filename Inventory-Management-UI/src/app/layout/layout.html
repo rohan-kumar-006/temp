@@ -1,7 +1,5 @@
 <div class="d-flex">
-
     <div class="sidebar border-end bg-light p-3">
-
         <h4 class="mb-4">
             Inventory Management
         </h4>
@@ -26,7 +24,7 @@
 
             </a>
 
-            <a
+            <a 
                 class="list-group-item list-group-item-action"
                 routerLink="/stock-management"
                 routerLinkActive="active">
@@ -35,16 +33,17 @@
 
             </a>
 
-            <a
+            <a  
+                *ngIf="isAdmin()" 
                 class="list-group-item list-group-item-action"
-                routerLink="/transactions"
+                routerLink="/transaction-history"
                 routerLinkActive="active">
 
                 Transaction History
 
             </a>
 
-            <a
+            <a  *ngIf="isAdmin()"
                 class="list-group-item list-group-item-action"
                 routerLink="/users"
                 routerLinkActive="active">

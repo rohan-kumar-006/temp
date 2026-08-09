@@ -8,6 +8,7 @@ import { environment } from '../../../../environments/environment';
 import { debounceTime, distinctUntilChanged, Subject, Subscription } from 'rxjs';
 import { Modal } from 'bootstrap';
 import { ToastService } from '../../../core/services/toast';
+import { AuthService } from '../../../core/services/auth';
 
 @Component({
   selector: 'app-product-list',
@@ -17,10 +18,12 @@ import { ToastService } from '../../../core/services/toast';
 })
 export class ProductList implements OnInit, OnDestroy {
   // const productServices=inject(Product);
-  constructor(private productServices: ProductService, private toast: ToastService) { }
+  constructor(private productServices: ProductService, private toast: ToastService,
+    private authService: AuthService) { }
   private searchSubject = new Subject<string>();
   private searchSubscription?: Subscription;
-  private fb = inject(FormBuilder)
+  private fb = inject(FormBuilder);
+  private productModalInstance?: Modal;
 
   private buildFormData(): FormData {
 
@@ -73,30 +76,22 @@ export class ProductList implements OnInit, OnDestroy {
 
   }
 
-  private closeModal(modalId: string) {
 
-    const modalElement =
-      document.getElementById(modalId);
-
-    if (!modalElement)
-      return;
-
-    const modal =
-      Modal.getInstance(modalElement)
-      ?? new Modal(modalElement);
-
-    modal.hide();
-    setTimeout(() => {
-      document.body.classList.remove('modal-open');
-      document.body.style.removeProperty('overflow');
-      document.body.style.removeProperty('padding-right');
-      document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
-    }, 300);
-
-  }
   ngOnInit(): void {
     this.setupSearch();
     this.loadProducts();
+
+    const modalEl = document.getElementById('productModal');
+
+    if (modalEl) {
+      this.productModalInstance = new Modal(modalEl, {
+        backdrop: true
+      });
+
+      modalEl.addEventListener('hidden.bs.modal', () => {
+        this.resetForm();
+      });
+    }
   }
   ngOnDestroy(): void {
     this.searchSubscription?.unsubscribe()
@@ -115,6 +110,8 @@ export class ProductList implements OnInit, OnDestroy {
   totalItems = signal(0);
 
   search = signal("");
+  currentSort = signal('name-asc');
+  selectedProduct = signal<Product | null>(null);
   sortBy = signal("name");
   descending = signal(false);
 
@@ -145,6 +142,9 @@ export class ProductList implements OnInit, OnDestroy {
       lowStockOnly: this.lowStockOnly()
     };
   };
+  isAdmin(): boolean {
+    return this.authService.isAdmin();
+  }
 
   loadProducts() {
     this.loading.set(true);
@@ -171,6 +171,14 @@ export class ProductList implements OnInit, OnDestroy {
       })
   }
 
+  openProductModal() {
+    this.resetForm();
+    this.productModalInstance?.show();
+  }
+
+  private closeProductModal() {
+    this.productModalInstance?.hide();
+  }
   nextPage() {
     if (this.page() < this.totalPages()) {
       this.page.update(p => p + 1);
@@ -189,6 +197,19 @@ export class ProductList implements OnInit, OnDestroy {
 
     this.page.set(p);
     this.loadProducts()
+  }
+  changeSort(event: Event) {
+    const value =
+      (event.target as HTMLSelectElement).value;
+    this.currentSort.set(value);
+    const [column, direction] =
+      value.split('-');
+    this.sortBy.set(column);
+    this.descending.set(
+      direction === 'desc'
+    );
+    this.page.set(1);
+    this.loadProducts();
   }
 
   get pagesList(): number[] {
@@ -227,19 +248,6 @@ export class ProductList implements OnInit, OnDestroy {
     // this.loadProducts()
   }
 
-  sort(column: string) {
-    if (this.sortBy() == column) {
-      this.descending.update(value => !value)
-    }
-    else {
-      // this.descending.update(value=>!validate)
-      this.sortBy.set(column)
-      this.descending.set(false)
-    }
-    this.page.set(1);
-    this.loadProducts();
-  }
-
   changeMinPrice(event: Event) {
     const value = Number((event.target as HTMLInputElement).value);
     this.minPrice.set(value || null)
@@ -262,11 +270,12 @@ export class ProductList implements OnInit, OnDestroy {
     this.maxPrice.set(null);
     this.minPrice.set(null);
     this.lowStockOnly.set(false);
-    this.search.set("")
-    this.sortBy.set("name")
-    this.descending.set(false)
-    this.page.set(1)
-    this.loadProducts()
+    this.search.set("");
+    this.sortBy.set("name");
+    this.descending.set(false);
+    this.currentSort.set("name-asc");
+    this.page.set(1);
+    this.loadProducts();
   }
 
   //Modal Part
@@ -344,8 +353,7 @@ export class ProductList implements OnInit, OnDestroy {
     if (this.productForm.invalid)
       return;
 
-    const formData =
-      this.buildFormData();
+    const formData = this.buildFormData();
 
     this.productServices
       .createProduct(formData)
@@ -353,16 +361,15 @@ export class ProductList implements OnInit, OnDestroy {
 
         next: response => {
           this.toast.success(response.message);
-
+          this.closeProductModal();
           this.loadProducts();
-
-          this.resetForm();
-          this.closeModal("productModal");
-
         },
 
         error: err => {
-          this.toast.error(err.error?.message ?? "Unable to create product");
+          this.toast.error(
+            err.error?.message ??
+            "Unable to create product"
+          );
         }
       });
   }
@@ -404,7 +411,6 @@ export class ProductList implements OnInit, OnDestroy {
             )
           )
           this.toast.success(response.message);
-          this.closeModal("productModal");
           this.resetForm();
         },
         error: (err) => {
@@ -444,7 +450,6 @@ export class ProductList implements OnInit, OnDestroy {
           );
           this.deletingProductId.set(null);
           this.deletingProductName.set("");
-          this.closeModal("deleteProductModal");
         },
         error: (err) => {
           this.toast.error(
@@ -453,5 +458,18 @@ export class ProductList implements OnInit, OnDestroy {
           );
         }
       });
+  }
+  showDescription(product: Product) {
+    this.selectedProduct.set(product);
+  }
+  getDescriptionPreview(description: string): string {
+    if (!description) {
+      return '';
+    }
+    if (description.length <= 80) {
+      return description;
+    }
+    return description.substring(0, 80) + '...';
+
   }
 }

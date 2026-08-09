@@ -1,11 +1,12 @@
 import { Injectable } from "@angular/core";
 import { environment } from "../../../environments/environment";
-import { HttpClient } from "@angular/common/http";
+import { HttpClient, HttpParams } from "@angular/common/http";
 import { CreateStockTransaction } from "../models/create-stock-transaction.model";
 import { ApiResponse } from "../models/app-response.model";
 import { StockTransactionResponse } from "../models/stock-transaction-response.model";
 import { PagedResult } from "../models/paged-result-model";
-import { TransactionHistory } from "../../features/transaction-history/transaction-history";
+import { TransactionHistoryQuery } from "../models/transaction-history-query.model";
+import { TransactionHistory } from "../models/transaction-history.model";
 
 @Injectable({
     providedIn: "root"
@@ -49,7 +50,7 @@ export class StockTransactionService {
         }
 
         return this.http.get<ApiResponse<PagedResult<TransactionHistory>>>(
-            `${this.apiUrl}/stock-transactions`,
+            `${this.apiUrl}`,
             { params }
         );
 

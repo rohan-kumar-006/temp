@@ -35,9 +35,7 @@ public class ExceptionMiddleware
                 Message=ex.Message,
                 Data=null
             };
-            await context.Response.WriteAsync(
-                JsonSerializer.Serialize(response)
-            );
+            await context.Response.WriteAsJsonAsync(response);
         }
     }
 }

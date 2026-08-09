@@ -67,6 +67,9 @@ export class StaffManagement implements OnInit {
         this.toast.success("Staff created successfully.");
       },
       error: (err) => {
+        // console.log("STATUS:", err.status);
+        // console.log("ERROR:", err.error);
+        // console.log("MESSAGE:", err.error?.message);
         this.toast.error(
           err.error?.message ??
           "Unable to create staff."

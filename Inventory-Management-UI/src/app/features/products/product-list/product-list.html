@@ -1,7 +1,7 @@
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h2>Products</h2>
-        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#productModal" (click)="resetForm()">
+        <button *ngIf="isAdmin()" class="btn btn-primary" (click)="openProductModal()">
 
             Add Product
         </button>
@@ -20,158 +20,175 @@
         </div>
 
     </div>
-    <div class="d-flex justify-content-between my-3 align-items-center">
-        <p class="text-muted">
-            Showing
-            {{ products().length }}
-            of
-            {{ totalItems() }}
-            products
+    <!-- Result count + Sorting -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+
+        <!-- Result Count -->
+        <p class="text-muted mb-0">
+            Showing {{ products().length }} of {{ totalItems() }} products
         </p>
-        <div class="d-flex align-items-center">
 
-            <label class="me-2 mb-0">Show</label>
+        <!-- Sorting -->
+        <div class="d-flex align-items-center gap-4">
 
-            <select class="form-select" style="width:100px" (change)="changePageSize($event)">
-
-                <option value="10">10</option>
-                <option value="20">20</option>
-                <option value="50">50</option>
-
-            </select>
-        </div>
-    </div>
-
-    <div class="row mb-3 d-flex">
-
-        <div class="col-md-2">
-
-            <input type="number" [value]="minPrice() ?? '' " class="form-control" placeholder="Min Price"
-                (input)="changeMinPrice($event)">
-
-        </div>
-
-        <div class="col-md-2">
-
-            <input type="number" [value]="maxPrice() ?? '' " class="form-control" placeholder="Max Price"
-                (input)="changeMaxPrice($event)">
-
-
-        </div>
-
-        <div class="col-md-3">
-
-            <div class="form-check mt-2">
-
-                <input class="form-check-input" type="checkbox" (change)="toggleLowStock($event)">
-
-                <label class="form-check-label">
-
-                    Low Stock Only
-
+            <div class="d-flex align-items-center">
+                <label class="me-2 mb-0 text-nowrap">
+                    Sort By
                 </label>
 
+                <select class="form-select" style="width: 180px" [value]="currentSort()" (change)="changeSort($event)">
+
+                    <option value="name-asc">Name (A-Z)</option>
+                    <option value="name-desc">Name (Z-A)</option>
+                    <option value="price-asc">Price (Low to High)</option>
+                    <option value="price-desc">Price (High to Low)</option>
+                    <option value="quantity-asc">Stock (Low to High)</option>
+                    <option value="quantity-desc">Stock (High to Low)</option>
+                    <option value="createdAt-desc">Newest</option>
+                    <option value="createdAt-asc">Oldest</option>
+
+                </select>
             </div>
 
 
+            <div class="d-flex align-items-center">
+
+                <label class="me-2 mb-0 text-nowrap">
+                    Show
+                </label>
+
+                <select class="form-select" style="width: 90px" (change)="changePageSize($event)">
+
+                    <option value="10">10</option>
+                    <option value="20">20</option>
+                    <option value="50">50</option>
+
+                </select>
+
+            </div>
+
         </div>
 
-        <button class="btn btn-outline-secondary" style="width: 150px;" (click)="clearFilters()">
+    </div>
+
+
+    <!-- Filters -->
+    <div class="d-flex align-items-center gap-3 mb-4">
+
+        <!-- Min Price -->
+        <input type="number" [value]="minPrice() ?? ''" class="form-control" style="width: 180px"
+            placeholder="Min Price" (input)="changeMinPrice($event)">
+
+
+        <!-- Max Price -->
+        <input type="number" [value]="maxPrice() ?? ''" class="form-control" style="width: 180px"
+            placeholder="Max Price" (input)="changeMaxPrice($event)">
+
+
+        <!-- Low Stock -->
+        <div class="form-check d-flex align-items-center mb-0 ms-2">
+
+            <input class="form-check-input mt-0" type="checkbox" id="lowStock" (change)="toggleLowStock($event)">
+
+            <label class="form-check-label ms-2 text-nowrap" for="lowStock">
+
+                Low Stock Only
+
+            </label>
+
+        </div>
+
+
+        <!-- Clear -->
+        <button class="btn btn-outline-secondary ms-auto" style="width: 150px" (click)="clearFilters()">
 
             Clear Filters
 
         </button>
 
     </div>
+    <div *ngIf="!loading()" class="row g-4">
+        <div class="col-12 col-md-6 col-lg-4" *ngFor="let product of products()">
+            <div class="card h-100 shadow-sm">
+                <!-- Product Image -->
+                <div class="p-3">
+                    <div class="product-image-container">
+                        <img *ngIf="product.imageUrl" [src]="apiBaseUrl + product.imageUrl" class="product-image">
+                        <span *ngIf="!product.imageUrl" class="text-muted">
+                            No Image
+                        </span>
+                    </div>
+                </div>
 
-    <table class="table table-bordered table-hover" *ngIf="!loading()">
-        <thead>
-            <tr>
-                <th>Image</th>
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title mb-1">
+                        {{ product.name }}
+                    </h5>
+                    <small class="text-muted mb-3">
+                        SKU: {{ product.sku }}
+                    </small>
+                    <h5 class="mb-3">
+                        {{ product.price | currency:'INR' }}
+                    </h5>
+                    <div class="d-flex justify-content-between mb-3">
+                        <div>
+                            <small class="text-muted d-block">
+                                Current Stock
+                            </small>
+                            <strong>
+                                {{ product.quantity }}
+                            </strong>
+                            <span *ngIf="product.quantity <= product.reorderLevel" class="badge bg-danger ms-2">
+                                Low Stock
+                            </span>
+                        </div>
+                        <div class="text-end">
+                            <small class="text-muted d-block">
+                                Reorder Level
+                            </small>
+                            <strong>
+                                {{ product.reorderLevel }}
+                            </strong>
+                        </div>
 
+                    </div>
+                    <p class="card-text text-muted">
 
-                <th role="button" (click)="sort('name')">
-                    Name
-                    <span *ngIf="sortBy() === 'name'">
-                        {{ descending() ? '▼' : '▲' }}
-                    </span>
-                </th>
+                        {{ getDescriptionPreview(product.description) }}
 
+                        <button *ngIf="product.description.length > 80" type="button"
+                            class="btn btn-link btn-sm p-0 ms-1" (click)="showDescription(product)"
+                            data-bs-toggle="modal" data-bs-target="#descriptionModal">
 
-                <th>SKU</th>
-                <th role="button" (click)="sort('price')">
-                    Price
-                    <span *ngIf="sortBy() === 'price'">
-                        {{ descending() ? '▼' : '▲' }}
-                    </span>
-                </th>
+                            Read More
 
-                <th role="button" (click)="sort('quantity')">
-                    Quantity
-                    <span *ngIf="sortBy() === 'quantity'">
-                        {{ descending() ? '▼' : '▲' }}
-                    </span>
-                </th>
-                <th role="button" (click)="sort('createdAt')">
-                    Created
-                    <span *ngIf="sortBy() === 'createdAt'">
-                        {{ descending() ? '▼' : '▲' }}
-                    </span>
-                </th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr *ngIf="products().length === 0">
-                <td colspan="7" class="text-center">
+                        </button>
+
+                    </p>
+
+                    <div class="mt-auto pt-3" *ngIf="isAdmin()">
+                        <button class="btn btn-sm btn-warning" (click)="editProduct(product)" data-bs-toggle="modal"
+                            data-bs-target="#productModal">
+                            Edit
+                        </button>
+                        <button class="btn btn-sm btn-danger ms-2" (click)="confirmDelete(product)"
+                            data-bs-toggle="modal" data-bs-target="#deleteProductModal">
+                            Delete
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div *ngIf="products().length === 0" class="col-12">
+            <div class="text-center py-5">
+                <p class="text-muted mb-0">
                     No products found.
-                </td>
-            </tr>
-
-            <tr *ngFor="let product of products()">
-                <td>
-                    <img *ngIf="product.imageUrl" [src]="apiBaseUrl + product.imageUrl" width="50" height="50"
-                        class="rounded">
-                </td>
-                <td>
-                    {{product.name}}
-                </td>
-                <td>
-                    {{product.sku}}
-                </td>
-                <td>
-                    {{product.price | currency:'INR'}}
-                </td>
-
-                <td>
-                    {{product.quantity}}
-                    <span *ngIf="product.quantity <= product.reorderLevel" class="badge bg-danger ms-2">
-                        Low Stock
-                    </span>
-                </td>
-
-                <td>
-                    {{product.createdBy}}
-                </td>
-                <td>
-                    <button class="btn btn-sm btn-warning" (click)="editProduct(product)" data-bs-toggle="modal"
-                        data-bs-target="#productModal">
-
-                        Edit
-
-                    </button>
-                    <button class="btn btn-sm btn-danger ms-2" (click)="confirmDelete(product)" data-bs-toggle="modal"
-                        data-bs-target="#deleteProductModal">
-
-                        Delete
-
-                    </button>
-                </td>
-            </tr>
-        </tbody>
-    </table>
+                </p>
+            </div>
+        </div>
+    </div>
     <nav *ngIf="totalPages() > 1">
-
         <ul class="pagination justify-content-center">
 
             <li class="page-item" [class.disabled]="page()===1">
@@ -210,9 +227,7 @@
 
     <div class="modal fade" id="productModal">
         <div class="modal-dialog modal-lg">
-
             <div class="modal-content">
-
                 <div class="modal-header">
 
                     <h5 class="modal-title">
@@ -272,37 +287,25 @@
                             <label class="form-label">
                                 Product Image
                             </label>
-
                             <input type="file" class="form-control" accept="image/*" (change)="onImageSelected($event)">
-
                         </div>
 
                         <div class="text-center" *ngIf="imagePreview()">
-
                             <img [src]="imagePreview()!" class="img-thumbnail"
                                 style="max-width:200px; max-height:200px;">
-
                         </div>
-
                     </form>
-
                 </div>
 
                 <div class="modal-footer">
-
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" (click)="resetForm()">
-
                         Cancel
-
                     </button>
 
                     <button type="button" class="btn btn-primary" [disabled]="productForm.invalid"
                         (click)="saveProduct()">
-
                         {{ isEditMode() ? 'Update' : 'Save' }}
-
                     </button>
-
                 </div>
             </div>
         </div>
@@ -337,6 +340,31 @@
                 </button>
                 <button class="btn btn-danger" (click)="deleteProduct()">
                     Delete
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="descriptionModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    {{ selectedProduct()?.name }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal">
+                </button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted mb-0">
+                    {{ selectedProduct()?.description }}
+                </p>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    Close
                 </button>
             </div>
         </div>

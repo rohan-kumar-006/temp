@@ -1,5 +1,4 @@
-using System.Text;
-using System.Text.Json.Serialization;
+using InventoryManagement.API.Common;
 using InventoryManagement.API.Configuration;
 using InventoryManagement.API.Data;
 using InventoryManagement.API.Data.Seed;
@@ -11,10 +10,14 @@ using InventoryManagement.API.Repositories.Interfaces;
 using InventoryManagement.API.Services.Implementations;
 using InventoryManagement.API.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using Serilog;
+using System.Text;
+using System.Text.Json.Serialization;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -95,6 +98,46 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddPolicy("login", httpContext =>
+    {
+        var ip = httpContext.Connection.RemoteIpAddress?.ToString()
+                 ?? "unknown";
+
+        return RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: ip,
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 5,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0
+            });
+    });
+
+
+    options.OnRejected = async (context, cancellationToken) =>
+    {
+        context.HttpContext.Response.StatusCode =
+            StatusCodes.Status429TooManyRequests;
+
+        context.HttpContext.Response.ContentType =
+            "application/json";
+
+        var response = new ApiResponse<object>
+        {
+            Success = false,
+            Message = "Too many requests. Please try again later.",
+            Data = null
+        };
+
+        await context.HttpContext.Response.WriteAsJsonAsync(
+            response,
+            cancellationToken
+        );
+    };
+});
+
 var specificOrigins = "_specificOrigins";
 
 builder.Services.AddCors(options =>
@@ -126,10 +169,11 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseSerilogRequestLogging();
-// app.UseHttpsRedirection();
+app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseMiddleware<ExceptionMiddleware>();
 app.UseCors(specificOrigins);
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

@@ -1,1 +1,159 @@
-<p>transaction-history works!</p>
+<div class="container mt-4">
+    <div class="row mb-3">
+        <div class="col-md-4">
+            <input type="text" class="form-control" placeholder="Search..." [value]="search()"
+                (input)="onSearch($event)">
+
+        </div>
+    </div>
+    <div class="row mb-3">
+        <div class="col-md-3">
+            <select class="form-select" (change)="changeType($event)">
+                <option value="">
+                    All Types
+                </option>
+                <option value="0">
+                    Stock In
+                </option>
+                <option value="1">
+                    Stock Out
+                </option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <input type="date" class="form-control" (change)="changeDate($event)">
+        </div>
+
+    </div>
+    <div *ngIf="loading()" class="text-center">
+        <div class="spinner-border">
+        </div>
+
+    </div>
+    <div class="d-flex justify-content-between my-3 align-items-center">
+        <p class="text-muted">
+            Showing
+            {{ transactions().length }}
+            of
+            {{ totalItems() }}
+            Transactions
+        </p>
+        <div class="d-flex align-items-center">
+            <label class="me-2 mb-0">Show</label>
+            <select class="form-select" style="width:100px" (change)="changePageSize($event)">
+
+                <option value="10">10</option>
+                <option value="20">20</option>
+                <option value="50">50</option>
+
+            </select>
+        </div>
+    </div>
+
+    <table class="table table-bordered table-hover" *ngIf="!loading()">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Product</th>
+                <th>SKU</th>
+                <th>Type</th>
+                <th>Quantity</th>
+                <th>Performed By</th>
+                <th>Remarks</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr *ngIf="transactions().length === 0">
+                <td colspan="7" class="text-center">
+                    No transactions found.
+                </td>
+            </tr>
+            <tr *ngFor="let transaction of transactions()">
+                <td>
+                    {{ transaction.createdAt | date:'dd MMM yyyy' }}
+                </td>
+                <td>
+                    {{ transaction.productName }}
+                </td>
+                <td>
+                    {{ transaction.sku }}
+                </td>
+                <td>
+                    <span class="badge" [ngClass]="
+                        transaction.type == 'In' 
+                        ? 'bg-success'
+                        : 'bg-warning text-dark'
+                    ">
+                        {{ transaction.type == 'In'
+                        ? 'Stock In'
+                        : 'Stock Out' }}
+                    </span>
+                </td>
+                <td>
+                    {{ transaction.quantity }}
+                </td>
+                <td>
+                    {{ transaction.performedBy }}
+                </td>
+                <td class="text-center">
+
+                    <button *ngIf="transaction.remarks" type="button" class="btn btn-link btn-sm text-decoration-none"
+                        (click)="showRemark(transaction.remarks)" data-bs-toggle="modal" data-bs-target="#remarkModal">
+                        <svg xmlns="http://w3.org" viewBox="0 0 24 24" width="24" height="24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="16" x2="12" y2="12"></line>
+                            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                        </svg>
+                    </button>
+                    <span *ngIf="!transaction.remarks">
+                        -
+                    </span>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <nav *ngIf="totalPages() > 1">
+        <ul class="pagination justify-content-center">
+            <li class="page-item" [class.disabled]="page()===1">
+                <button class="page-link" (click)="previousPage()">
+                    Previous
+                </button>
+            </li>
+            <li *ngFor="let p of pagesList" class="page-item" [class.active]="p===page()">
+                <button class="page-link" (click)="goToPage(p)">
+                    {{p}}
+                </button>
+            </li>
+            <li class="page-item" [class.disabled]="page()===totalPages()">
+                <button class="page-link" (click)="nextPage()">
+                    Next
+                </button>
+            </li>
+        </ul>
+    </nav>
+    <div class="modal fade" id="remarkModal" tabindex="-1" aria-labelledby="remarkModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="remarkModalLabel">
+                        Transaction Remark
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+                    </button>
+
+                </div>
+                <div class="modal-body">
+                    <p class="mb-0 text-muted">
+                        {{ selectedRemark() }}
+                    </p>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>

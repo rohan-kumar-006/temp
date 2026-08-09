@@ -10,7 +10,7 @@ import { Layout } from './layout/layout';
 import { authGuard } from './core/guards/auth-guard';
 import { loginGuard } from './core/guards/login-guard';
 import { adminGuard } from './core/guards/admin-guard';
-import { TransactionHistory } from './features/transaction-history/transaction-history';
+import { TransactionHistoryComponent } from './features/transaction-history/transaction-history';
 
 export const routes: Routes = [
 
@@ -46,8 +46,7 @@ export const routes: Routes = [
 
       {
         path: 'products',
-        component: ProductList,
-        canActivate: [adminGuard]
+        component: ProductList
       },
 
       {
@@ -56,8 +55,8 @@ export const routes: Routes = [
       },
       {
         path: 'transaction-history',
-        component: TransactionHistory,
-        canActivate: [authGuard]
+        component: TransactionHistoryComponent,
+        canActivate: [adminGuard]
       }
     ]
   }

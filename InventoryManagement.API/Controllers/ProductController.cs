@@ -48,6 +48,7 @@ public class ProductController : ControllerBase
         );
     }
     [HttpPut("{id}")]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<ApiResponse<ProductDto>>> UpdateProduct(int id, [FromForm] UpdateProductDto request)
     {
         var product = await _productService.UpdateProductAsync(id, request);
@@ -61,6 +62,7 @@ public class ProductController : ControllerBase
     }
     
     [HttpDelete("{id}")]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<ApiResponse<object>>> DeleteProduct(int id)
     {
         await _productService.DeleteProductAsync(id);

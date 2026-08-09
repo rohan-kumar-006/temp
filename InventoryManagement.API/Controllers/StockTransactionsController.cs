@@ -10,7 +10,7 @@ namespace InventoryManagement.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(Roles ="Staff,Admin")]
+
 
 public class StockTransactionsController : ControllerBase
 {
@@ -22,6 +22,7 @@ public class StockTransactionsController : ControllerBase
     }   
  
     [HttpPost]
+    [Authorize(Roles = "Staff,Admin")]
     public async Task<ActionResult<ApiResponse<StockTransactionResponseDto>>> CreateTransaction(CreateStockTransactionDto request)
     {
         var response = await _stockService.CreateTransactionAsync(request);
@@ -36,6 +37,7 @@ public class StockTransactionsController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> GetTransactionHistory([FromQuery] TransactionHistoryQueryParameters parameters)
     {
         var result=await _stockService.GetTransactionHistoryAsync(parameters);
