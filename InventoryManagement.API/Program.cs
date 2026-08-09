@@ -32,12 +32,11 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
 
-builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IStockTransactionRepository, StockTransactionRepository>();
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IFileService, FileService>();
-builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IStockTransactionService, StockTransactionService>();
 
 builder.Services.Configure<JwtSettings>(
