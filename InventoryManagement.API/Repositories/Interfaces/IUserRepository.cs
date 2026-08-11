@@ -9,6 +9,7 @@ public interface IUserRepository
 
     Task<IEnumerable<User>> GetAllStaffAsync();
 
+    Task<int> GetStaffCountAsync();
     Task AddAsync(User user);
     void Update(User user);
 

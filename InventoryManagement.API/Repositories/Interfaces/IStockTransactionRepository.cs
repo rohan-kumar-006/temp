@@ -11,7 +11,18 @@ public interface IStockTransactionRepository
     Task<IEnumerable<StockTransaction>> GetAllAsync();
 
     Task<IEnumerable<StockTransaction>> GetByProductIdAsync(int productId);
-    
+
     Task<PagedResult<StockTransaction>> GetTransactionHistoryAsync(TransactionHistoryQueryParameters parameters);
+
+    //for dashboard
+    Task<int> GetStockInTodayAsync();
+
+    Task<int> GetStockOutTodayAsync();
+
+    Task<int> GetTransactionCountTodayAsync();
+
+    Task<IEnumerable<StockTransaction>> GetRecentTransactionsAsync(int count);
+
+    Task<IEnumerable<StockTransaction>> GetMyRecentTransactionsAsync(int userId, int count);
     Task SaveChangesAsync();
 }

@@ -38,6 +38,7 @@ builder.Services.AddScoped<IStockTransactionRepository, StockTransactionReposito
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.AddScoped<IStockTransactionService, StockTransactionService>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
 
 builder.Services.Configure<JwtSettings>(
     builder.Configuration.GetSection("Jwt")

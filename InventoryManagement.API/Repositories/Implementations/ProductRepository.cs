@@ -111,6 +111,30 @@ public class ProductRepository : IProductRepository
         return Task.CompletedTask;
     }
 
+
+    //dashboard ke liye
+
+    public async Task<int> GetTotalProductsAsync()
+    {
+        return await _context.Products.CountAsync();
+    }
+    public async Task<int> GetLowStockProductCountAsync()
+    {
+        return await _context.Products.CountAsync(p => p.Quantity <= p.ReorderLevel);
+    }
+    public async Task<int> GetTotalStockAsync()
+    {
+        return await _context.Products.SumAsync(p => p.Quantity);
+    }
+
+    public async Task<IEnumerable<Product>> GetLowStockProductsAsync(int count)
+    {
+        return await _context.Products
+            .Where(p => p.Quantity <= p.ReorderLevel)
+            .OrderBy(p=>p.Quantity)
+            .Take(count)
+            .ToListAsync();
+    }
     public void Update(Product product)
     {
         _context.Products.Update(product);

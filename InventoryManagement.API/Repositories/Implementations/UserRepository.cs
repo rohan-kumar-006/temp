@@ -34,6 +34,11 @@ public class UserRepository : IUserRepository
             .ToListAsync();
     }
 
+    public async Task<int> GetStaffCountAsync()
+    {  //isme maine inactive and active dono rakh diye the
+        return await _context.Users.CountAsync(u=>u.Role==Enums.UserRole.Staff);
+    }
+
     public async Task AddAsync(User user)
     {
         await _context.Users.AddAsync(user);

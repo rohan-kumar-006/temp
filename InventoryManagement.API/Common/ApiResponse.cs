@@ -6,14 +6,14 @@ public class ApiResponse<T>
 
     public string Message { get; set; } = String.Empty;
 
-    public T? Data{get;set;}
+    public T? Data { get; set; }
 
-    public ApiResponse(){}
+    public ApiResponse() { }
 
-    public ApiResponse(bool success,string message,T? data)
+    public ApiResponse(bool success, string message, T? data)
     {
-        Success=success;
-        Message=message;
-        Data=data;        
+        Success = success;
+        Message = message;
+        Data = data;
     }
 }

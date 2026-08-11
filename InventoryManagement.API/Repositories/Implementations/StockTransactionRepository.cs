@@ -3,6 +3,7 @@ namespace InventoryManagement.API.Repositories.Implementations;
 using InventoryManagement.API.Data;
 using InventoryManagement.API.DTOs.Products;
 using InventoryManagement.API.DTOs.TransactionHistory;
+using InventoryManagement.API.Enums;
 using InventoryManagement.API.Models;
 using InventoryManagement.API.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -84,6 +85,57 @@ public class StockTransactionRepository : IStockTransactionRepository
             TotalPages = (int)Math.Ceiling(
                             totalItems / (double)parameters.PageSize)
         };
+    }
+
+    public async Task<int> GetStockInTodayAsync()
+    {
+        var today = DateTime.UtcNow.Date;
+        var tomorrow = today.AddDays(1);
+
+        return await _context.StockTransactions
+            .Where(t => t.CreatedAt.Date >= today && t.CreatedAt.Date < tomorrow
+            && t.Type == TransactionType.In)
+            .SumAsync(t => t.Quantity);
+    }
+    public async Task<int> GetStockOutTodayAsync()
+    {
+        var today = DateTime.UtcNow.Date;
+        var tomorrow = today.AddDays(1);
+
+        return await _context.StockTransactions
+            .Where(t => t.CreatedAt.Date >= today && t.CreatedAt.Date < tomorrow
+            && t.Type == TransactionType.Out)
+            .SumAsync(t => t.Quantity);
+    }
+    public async Task<int> GetTransactionCountTodayAsync()
+    {
+        var today = DateTime.UtcNow.Date;
+        var tomorrow = today.AddDays(1);
+
+        return await _context.StockTransactions
+            .CountAsync(t =>
+                t.CreatedAt >= today &&
+                t.CreatedAt < tomorrow);
+    }
+
+    public async Task<IEnumerable<StockTransaction>> GetRecentTransactionsAsync(int count)
+    {
+        return await _context.StockTransactions
+            .Include(t => t.Product)
+            .Include(t => t.User)
+            .OrderByDescending(t => t.CreatedAt)
+            .Take(count).ToArrayAsync();
+    }
+    public async Task<IEnumerable<StockTransaction>> GetMyRecentTransactionsAsync(
+        int userId,
+        int count)
+    {
+        return await _context.StockTransactions
+        .Include(t => t.Product)
+        .Where(t => t.UserId == userId)
+        .OrderByDescending(t => t.CreatedAt)
+        .Take(count)
+        .ToListAsync();
     }
 
 }
