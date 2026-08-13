@@ -5,6 +5,7 @@ import { StockTransactionService } from '../../core/services/stock-transaction';
 import { ToastService } from '../../core/services/toast';
 import { debounceTime, distinctUntilChanged, Subject, Subscription } from 'rxjs';
 import { TransactionHistory } from '../../core/models/transaction-history.model';
+import { TransactionType } from '../../core/models/enums/transaction-type.model';
 
 @Component({
   selector: 'app-transaction-history',
@@ -22,13 +23,14 @@ export class TransactionHistoryComponent implements OnInit, OnDestroy {
   private searchSubscription?: Subscription;
 
   transactions = signal<TransactionHistory[]>([]);
+  TransactionType = TransactionType;
   loading = signal(false)
   page = signal(1)
   pageSize = signal(10)
   totalItems = signal(0);
   totalPages = signal(0)
   search = signal("")
-  type = signal<number | null>(null)
+  type = signal<TransactionType | null>(null)
   date = signal("")
   selectedRemark = signal<string | null>(null);
 
@@ -105,7 +107,7 @@ export class TransactionHistoryComponent implements OnInit, OnDestroy {
     if (value == "") {
       this.type.set(null);
     } else {
-      this.type.set(Number(value));
+      this.type.set(value as TransactionType);
     }
 
     this.page.set(1)

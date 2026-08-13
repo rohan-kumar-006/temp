@@ -6,6 +6,7 @@ import { LoginResponse } from '../models/login-response.model';
 import { Observable } from 'rxjs';
 import { ApiResponse } from '../models/app-response.model';
 import { jwtDecode } from 'jwt-decode';
+import { UserRole } from '../models/enums/user-role.model';
 
 interface JwtPayload {
   exp?: number;
@@ -32,20 +33,20 @@ export class AuthService {
   getToken() {
     return localStorage.getItem("token");
   }
-  saveRole(role: string) {
+  saveRole(role: UserRole) {
     localStorage.setItem("role", role);
   }
 
-  getRole(): string | null {
-    return localStorage.getItem("role");
+  getRole(): UserRole | null {
+    return localStorage.getItem("role")  as UserRole | null;
   }
   isAdmin(): boolean {
-    return this.getRole() == "Admin";
+    return this.getRole() === UserRole.Admin;
   }
 
   isLoggedIn(): boolean {
     const token = localStorage.getItem("token");
-    console.log("token",token)
+    // console.log("token", token)
     if (!token) {
       return false;
     }

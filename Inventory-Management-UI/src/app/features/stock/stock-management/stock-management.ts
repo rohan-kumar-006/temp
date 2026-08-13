@@ -10,6 +10,7 @@ import { Modal } from 'bootstrap';
 import { StockTransactionService } from '../../../core/services/stock-transaction';
 import { CreateStockTransaction } from '../../../core/models/create-stock-transaction.model';
 import { ToastService } from '../../../core/services/toast';
+import { TransactionType } from '../../../core/models/enums/transaction-type.model';
 
 @Component({
   selector: 'app-stock-management',
@@ -56,7 +57,8 @@ export class StockManagement implements OnInit, OnDestroy {
   apiBaseUrl = environment.apiBaseUrl;
 
   //for stockmanagement
-  transactionType = signal<"In" | "Out">("In");
+  transactionType = signal<TransactionType>(TransactionType.In);
+  TransactionType = TransactionType;
   selectedProduct = signal<Product | null>(null);
 
   products = signal<Product[]>([]);
@@ -174,7 +176,7 @@ export class StockManagement implements OnInit, OnDestroy {
 
   openStockIn(product: Product) {
     this.selectedProduct.set(product);
-    this.transactionType.set("In")
+    this.transactionType.set(TransactionType.In)
 
     this.stockForm.reset({
       quantity: 1,
@@ -184,7 +186,7 @@ export class StockManagement implements OnInit, OnDestroy {
   }
   openStockOut(product: Product) {
     this.selectedProduct.set(product);
-    this.transactionType.set("Out")
+    this.transactionType.set(TransactionType.Out)
 
     this.stockForm.reset({
       quantity: 1,

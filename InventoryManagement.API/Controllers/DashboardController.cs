@@ -18,7 +18,8 @@ namespace InventoryManagement.API.Controllers
             _dashboardService = dashboardService;
         }
 
-        [HttpGet]
+
+        [HttpGet("admin")]
         [Authorize(Roles ="Admin")]
         public async Task<ActionResult<ApiResponse<AdminDashboardDto>>> GetAdminDashboard()
         {
@@ -33,6 +34,7 @@ namespace InventoryManagement.API.Controllers
         }
         [HttpGet("staff")]
         [Authorize(Roles = "Staff,Admin")]
+
         public async Task<ActionResult<ApiResponse<StaffDashboardDto>>> GetStaffDashboard()
         {
             var userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);

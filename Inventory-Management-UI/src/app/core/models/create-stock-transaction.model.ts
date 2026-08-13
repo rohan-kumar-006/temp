@@ -1,6 +1,8 @@
+import { TransactionType } from "./enums/transaction-type.model"
+
 export interface CreateStockTransaction{
     productId:number,
-    type:"In" | "Out",
+    type:TransactionType
     quantity:number,
     remarks?:string
 }

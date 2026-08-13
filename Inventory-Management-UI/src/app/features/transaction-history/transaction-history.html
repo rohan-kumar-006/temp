@@ -12,10 +12,11 @@
                 <option value="">
                     All Types
                 </option>
-                <option value="0">
+                <option value="In">
                     Stock In
                 </option>
-                <option value="1">
+
+                <option value="Out">
                     Stock Out
                 </option>
             </select>
@@ -80,11 +81,11 @@
                 </td>
                 <td>
                     <span class="badge" [ngClass]="
-                        transaction.type == 'In' 
+                        transaction.type ===  TransactionType.In 
                         ? 'bg-success'
                         : 'bg-warning text-dark'
                     ">
-                        {{ transaction.type == 'In'
+                        {{ transaction.type === TransactionType.In
                         ? 'Stock In'
                         : 'Stock Out' }}
                     </span>

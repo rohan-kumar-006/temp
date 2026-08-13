@@ -1,3 +1,58 @@
-<div class="container mt-5">
+<div class="container mt-4">
+
     <h2>Dashboard</h2>
+
+    <div *ngIf="loading()" class="text-center">
+
+        <div class="spinner-border"></div>
+
+    </div>
+
+    <div *ngIf="!loading() && isAdmin()">
+
+        <h4>Admin Dashboard</h4>
+
+        <p>
+            Total Products:
+            {{ adminDashboard()?.totalProducts }}
+        </p>
+
+        <p>
+            Low Stock:
+            {{ adminDashboard()?.lowStockProducts }}
+        </p>
+
+        <p>
+            Total Staff:
+            {{ adminDashboard()?.totalStaff }}
+        </p>
+
+        <p>
+            Total Stock:
+            {{ adminDashboard()?.totalStock }}
+        </p>
+
+    </div>
+
+    <div *ngIf="!loading() && !isAdmin()">
+
+        <h4>Staff Dashboard</h4>
+
+        <p>
+            Total Products:
+            {{ staffDashboard()?.totalProducts }}
+        </p>
+
+        <p>
+            Low Stock:
+            {{ staffDashboard()?.lowStockProducts }}
+        </p>
+
+        <p>
+            Total Stock:
+            {{ staffDashboard()?.totalStock }}
+        </p>
+
+    </div>
+
 </div>
