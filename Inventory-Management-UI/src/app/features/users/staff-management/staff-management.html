@@ -68,11 +68,43 @@
                     </div>
                     <div class="mb-3">
                         <label>Email</label>
+
                         <input type="email" class="form-control" formControlName="email">
+
+                        <div class="text-danger mt-1" *ngIf="
+                            staffForm.get('email')?.touched &&
+                            staffForm.get('email')?.hasError('required')
+                        ">
+                            Email is required.
+                        </div>
+
+                        <div class="text-danger mt-1" *ngIf="
+                            staffForm.get('email')?.touched &&
+                            staffForm.get('email')?.hasError('email')
+                        ">
+                            Please enter a valid email address.
+                        </div>
                     </div>
                     <div *ngIf="!isEditMode()" class="mb-3">
+
                         <label>Password</label>
+
                         <input type="password" class="form-control" formControlName="password">
+
+                        <div class="text-danger mt-1" *ngIf="
+                            staffForm.get('password')?.touched &&
+                            staffForm.get('password')?.hasError('required')
+                        ">
+                            Password is required.
+                        </div>
+
+                        <div class="text-danger mt-1" *ngIf="
+                            staffForm.get('password')?.touched &&
+                            staffForm.get('password')?.hasError('minlength')
+                        ">
+                            Password must be at least 6 characters.
+                        </div>
+
                     </div>
                 </form>
             </div>

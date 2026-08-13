@@ -1,14 +1,9 @@
 using System.Diagnostics;
 using InventoryManagement.API.Common;
 using InventoryManagement.API.DTOs.Users;
-using InventoryManagement.API.Models;
-using InventoryManagement.API.Services.Implementations;
 using InventoryManagement.API.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.Identity.Client;
 
 namespace InventoryManagement.API.Controllers;
 
@@ -65,8 +60,7 @@ public class UserController:ControllerBase
     {   
         var user=await _userService.ToggleStatusAsync(id);
 
-        string message=user.IsActive ? "Staff activated successfully." : "Staff Dactivated successfully." ;
-        Debug.WriteLine("Route hit");
+        string message=user.IsActive ? "Staff activated successfully." : "Staff Dectivated successfully." ;
         return Ok(
             new ApiResponse<UserDto>(
             true,

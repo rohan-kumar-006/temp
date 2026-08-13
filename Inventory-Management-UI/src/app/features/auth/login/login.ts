@@ -32,7 +32,6 @@ export class Login {
             .subscribe({
                 next: (response) => {
                     this.authService.saveToken(response.data.token);
-                    this.authService.saveRole(response.data.role);
                     this.toast.success("Login successful.");
                     this.router.navigate(['/dashboard']);
                 },

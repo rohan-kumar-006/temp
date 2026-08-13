@@ -95,7 +95,7 @@ export class StockManagement implements OnInit, OnDestroy {
           this.totalPages.set(response.data.totalPages)
 
           this.loading.set(false);
-          console.log(this.products())
+          // console.log(this.products())
         },
         error: (err) => {
           this.toast.error(

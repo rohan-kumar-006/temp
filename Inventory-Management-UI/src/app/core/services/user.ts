@@ -35,7 +35,7 @@ export class UserService {
   }
 
   toggleStatus(id:number) : Observable<ApiResponse<User>>{
-    console.log("service hit")
+    // console.log("service hit")
     return this.http.patch<ApiResponse<User>>(
       `${this.apiUrl}/users/${id}/status`,{}
     )

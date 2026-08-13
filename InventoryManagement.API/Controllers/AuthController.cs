@@ -1,10 +1,8 @@
 using InventoryManagement.API.Common;
 using InventoryManagement.API.DTOs.Auth;
-using InventoryManagement.API.Services.Implementations;
 using InventoryManagement.API.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
-using Microsoft.Identity.Client;
 
 namespace InventoryManagement.API.Controllers;
 
@@ -21,7 +19,7 @@ public class AuthController : ControllerBase
 
     [HttpPost("login")]
     [EnableRateLimiting("login")]
-    public async Task<ActionResult<LoginResponseDto>> Login(LoginRequestDto request)
+    public async Task<ActionResult<ApiResponse<LoginResponseDto>>> Login(LoginRequestDto request)
     {
         var response = await  _authService.LoginAsync(request);
         return Ok(

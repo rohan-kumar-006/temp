@@ -10,6 +10,7 @@ import { UserRole } from '../models/enums/user-role.model';
 
 interface JwtPayload {
   exp?: number;
+  "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"?: string;
 }
 
 @Injectable({
@@ -33,13 +34,25 @@ export class AuthService {
   getToken() {
     return localStorage.getItem("token");
   }
-  saveRole(role: UserRole) {
-    localStorage.setItem("role", role);
+  getRole(): UserRole | null {
+    const token = this.getToken();
+
+    if (!token) {
+      return null;
+    }
+
+    try {
+      const decoded = jwtDecode<JwtPayload>(token);
+      const role =
+        decoded[
+        "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
+        ];
+      return role as UserRole ?? null;
+    } catch {
+      return null;
+    }
   }
 
-  getRole(): UserRole | null {
-    return localStorage.getItem("role")  as UserRole | null;
-  }
   isAdmin(): boolean {
     return this.getRole() === UserRole.Admin;
   }
@@ -73,6 +86,5 @@ export class AuthService {
 
   logout() {
     localStorage.removeItem("token");
-    localStorage.removeItem("role");
   }
 }
