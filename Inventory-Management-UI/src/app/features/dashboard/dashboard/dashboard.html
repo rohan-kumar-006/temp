@@ -1,58 +1,352 @@
-<!-- <div class="container mt-4">
+<div class="container mt-4">
+    <div class="mb-4">
+        <h2>
+            {{ isAdmin() ? 'Admin Dashboard' : 'Staff Dashboard' }}
+        </h2>
+        <p class="text-muted">
+            Overview of your inventory
+        </p>
+    </div>
 
-    <h2>Dashboard</h2>
-
-    <div *ngIf="loading()" class="text-center">
-
+    <div *ngIf="loading()" class="text-center my-5">
         <div class="spinner-border"></div>
-
     </div>
 
-    <div *ngIf="!loading() && isAdmin()">
+    <div *ngIf="!loading() && isAdmin() && adminDashboard()">
+        <div class="row g-3 mb-4">
+            <div class="col-md-3">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h6 class="text-muted">
+                            Total Products
+                        </h6>
+                        <h2>
+                            {{ adminDashboard()!.totalProducts }}
+                        </h2>
+                    </div>
+                </div>
+            </div>
 
-        <h4>Admin Dashboard</h4>
+            <div class="col-md-3">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h6 class="text-muted">
+                            Low Stock Products
+                        </h6>
+                        <h2>
+                            {{ adminDashboard()!.lowStockProducts }}
+                        </h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h6 class="text-muted">
+                            Total Staff
+                        </h6>
+                        <h2>
+                            {{ adminDashboard()!.totalStaff }}
+                        </h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card  h-100">
+                    <div class="card-body">
+                        <h6 class="text-muted">
+                            Total Stock
+                        </h6>
+                        <h2>
+                            {{ adminDashboard()!.totalStock }}
+                        </h2>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-        <p>
-            Total Products:
-            {{ adminDashboard()?.totalProducts }}
-        </p>
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <div class="card ">
+                    <div class="card-body">
+                        <h6 class="text-muted">
+                            Stock In Today
+                        </h6>
+                        <h3>
+                            {{ adminDashboard()!.stockInToday }}
+                        </h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card ">
+                    <div class="card-body">
+                        <h6 class="text-muted">
+                            Stock Out Today
+                        </h6>
+                        <h3>
+                            {{ adminDashboard()!.stockOutToday }}
+                        </h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card ">
+                    <div class="card-body">
+                        <h6 class="text-muted">
+                            Transactions Today
+                        </h6>
+                        <h3>
+                            {{ adminDashboard()!.transactionsToday }}
+                        </h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card  mb-4">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">
+                    Low Stock Products
+                </h5>
+            </div>
 
-        <p>
-            Low Stock:
-            {{ adminDashboard()?.lowStockProducts }}
-        </p>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>SKU</th>
+                                <th>Current Stock</th>
+                                <th>Reorder Level</th>
+                            </tr>
+                        </thead>
 
-        <p>
-            Total Staff:
-            {{ adminDashboard()?.totalStaff }}
-        </p>
+                        <tbody>
+                            <tr *ngFor="let product of adminDashboard()!.lowStockItems">
+                                <td>
+                                    {{ product.name }}
+                                </td>
+                                <td>
+                                    {{ product.sku }}
+                                </td>
+                                <td>
+                                    <span class="badge bg-danger">
+                                        {{ product.quantity }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {{ product.reorderLevel }}
+                                </td>
+                            </tr>
 
-        <p>
-            Total Stock:
-            {{ adminDashboard()?.totalStock }}
-        </p>
+                            <tr *ngIf="adminDashboard()!.lowStockItems.length === 0">
+                                <td colspan="4" class="text-center text-muted">
+                                    No low stock products.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
 
+        <div class="card  mb-4">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">
+                    Recent Transactions
+                </h5>
+            </div>
+
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Product</th>
+                                <th>SKU</th>
+                                <th>Type</th>
+                                <th>Quantity</th>
+                                <th>Performed By</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let transaction of adminDashboard()!.recentTransactions">
+                                <td>
+                                    {{ transaction.createdAt | date:'dd MMM yyyy' }}
+                                </td>
+                                <td>
+                                    {{ transaction.productName }}
+                                </td>
+                                <td>
+                                    {{ transaction.sku }}
+                                </td>
+                                <td>
+                                    <span *ngIf="transaction.type === 'In'" class="badge bg-success">
+                                        Stock In
+                                    </span>
+                                    <span *ngIf="transaction.type === 'Out'" class="badge bg-warning text-dark">
+                                        Stock Out
+                                    </span>
+                                </td>
+                                <td>
+                                    {{ transaction.quantity }}
+                                </td>
+                                <td>
+                                    {{ transaction.performedBy }}
+                                </td>
+                            </tr>
+
+                            <tr *ngIf="adminDashboard()!.recentTransactions.length === 0">
+                                <td colspan="6" class="text-center text-muted">
+                                    No recent transactions.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div *ngIf="!loading() && !isAdmin()">
+    <div *ngIf="!loading() && !isAdmin() && staffDashboard()">
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <div class="card  h-100">
+                    <div class="card-body">
+                        <h6 class="text-muted">
+                            Total Products
+                        </h6>
+                        <h2>
+                            {{ staffDashboard()!.totalProducts }}
+                        </h2>
+                    </div>
+                </div>
+            </div>
 
-        <h4>Staff Dashboard</h4>
+            <div class="col-md-4">
+                <div class="card  h-100">
+                    <div class="card-body">
+                        <h6 class="text-muted">
+                            Low Stock Products
+                        </h6>
+                        <h2>
+                            {{ staffDashboard()!.lowStockProducts }}
+                        </h2>
+                    </div>
+                </div>
+            </div>
 
-        <p>
-            Total Products:
-            {{ staffDashboard()?.totalProducts }}
-        </p>
+            <div class="col-md-4">
+                <div class="card  h-100">
+                    <div class="card-body">
+                        <h6 class="text-muted">
+                            Total Stock
+                        </h6>
+                        <h2>
+                            {{ staffDashboard()!.totalStock }}
+                        </h2>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-        <p>
-            Low Stock:
-            {{ staffDashboard()?.lowStockProducts }}
-        </p>
+        <div class="card  mb-4">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">
+                    Low Stock Products
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>SKU</th>
+                                <th>Current Stock</th>
+                                <th>Reorder Level</th>
+                            </tr>
+                        </thead>
 
-        <p>
-            Total Stock:
-            {{ staffDashboard()?.totalStock }}
-        </p>
-
+                        <tbody>
+                            <tr *ngFor="let product of staffDashboard()!.lowStockItems">
+                                <td>
+                                    {{ product.name }}
+                                </td>
+                                <td>
+                                    {{ product.sku }}
+                                </td>
+                                <td>
+                                    <span class="badge bg-danger">
+                                        {{ product.quantity }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {{ product.reorderLevel }}
+                                </td>
+                            </tr>
+                            <tr *ngIf="staffDashboard()!.lowStockItems.length === 0">
+                                <td colspan="4" class="text-center text-muted">
+                                    No low stock products.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="card  mb-4">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">
+                    My Recent Transactions
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Product</th>
+                                <th>SKU</th>
+                                <th>Type</th>
+                                <th>Quantity</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let transaction of staffDashboard()!.myRecentTransactions">
+                                <td>
+                                    {{ transaction.createdAt | date:'dd MMM yyyy' }}
+                                </td>
+                                <td>
+                                    {{ transaction.productName }}
+                                </td>
+                                <td>
+                                    {{ transaction.sku }}
+                                </td>
+                                <td>
+                                    <span *ngIf="transaction.type === 'In'" class="badge bg-success">
+                                        Stock In
+                                    </span>
+                                    <span *ngIf="transaction.type === 'Out'" class="badge bg-warning text-dark">
+                                        Stock Out
+                                    </span>
+                                </td>
+                                <td>
+                                    {{ transaction.quantity }}
+                                </td>
+                            </tr>
+                            <tr *ngIf="staffDashboard()!.myRecentTransactions.length === 0">
+                                <td colspan="5" class="text-center text-muted">
+                                    You have no recent transactions.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
-
-</div> -->
+</div>
