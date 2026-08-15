@@ -6,6 +6,7 @@ using InventoryManagement.API.Repositories.Interfaces;
 using InventoryManagement.API.Services.Interfaces;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace InventoryManagement.API.Services.Implementations;
 
@@ -13,10 +14,12 @@ public class UserService : IUserService
 {
     private readonly IUserRepository _userRepository;
     private readonly ILogger<UserService> _logger;
-    public UserService(IUserRepository userRepository, ILogger<UserService> logger)
+    private readonly IMemoryCache _cache;
+    public UserService(IUserRepository userRepository, ILogger<UserService> logger,IMemoryCache cache)
     {
         _userRepository = userRepository;
         _logger = logger;
+        _cache = cache;
     }
 
     public async Task<UserDto> CreateStaffAsync(CreateUserDto request)
@@ -40,7 +43,7 @@ public class UserService : IUserService
 
         await _userRepository.AddAsync(user);
         await _userRepository.SaveChangesAsync();
-
+        _cache.Remove("admin-dashboard");
         _logger.LogInformation(
             "Staff account created. UserId: {UserId}, Email: {Email}",
             user.Id,
@@ -123,6 +126,7 @@ public class UserService : IUserService
 
         _userRepository.Update(user);
         await _userRepository.SaveChangesAsync();
+        _cache.Remove("admin-dashboard");
         _logger.LogInformation(
             "Staff account updated. UserId: {UserId}, Email: {Email}",
             user.Id,
@@ -157,6 +161,7 @@ public class UserService : IUserService
         }
         user.IsActive = !user.IsActive;
         await _userRepository.SaveChangesAsync();
+        _cache.Remove("admin-dashboard");
         _logger.LogInformation(
             "Staff account status changed. UserId: {UserId}, Email: {Email}, Status: {Status}",
             user.Id,

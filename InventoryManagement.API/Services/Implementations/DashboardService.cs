@@ -1,6 +1,7 @@
 ﻿using InventoryManagement.API.DTOs.Dashboard;
 using InventoryManagement.API.Repositories.Interfaces;
 using InventoryManagement.API.Services.Interfaces;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace InventoryManagement.API.Services.Implementations
 {
@@ -9,23 +10,33 @@ namespace InventoryManagement.API.Services.Implementations
         private readonly IProductRepository _productRepository;
         private readonly IStockTransactionRepository _stockTransactionRepository;
         private readonly IUserRepository _userRepository;
+        private readonly IMemoryCache _cache;
 
-        public DashboardService(IProductRepository productRepository, IStockTransactionRepository stockTransactionRepository, IUserRepository userRepository)
+        public DashboardService(IProductRepository productRepository, IStockTransactionRepository stockTransactionRepository, IUserRepository userRepository, IMemoryCache cache)
         {
             _productRepository = productRepository;
             _stockTransactionRepository = stockTransactionRepository;
             _userRepository = userRepository;
+            _cache = cache;
         }
 
         public async Task<AdminDashboardDto> GetAdminDashboardAsync()
         {
+            if(_cache.TryGetValue("admin-dashboard",out AdminDashboardDto? cachedDashboard))
+            {
+                Console.WriteLine("Cache Hit");
+                return cachedDashboard!;
+            }
+
+            Console.WriteLine("Cache Miss");
+
             var totalProducts = await _productRepository.GetTotalProductsAsync();
             var lowStockCount = await _productRepository.GetLowStockProductCountAsync();
             var totalStock = await _productRepository.GetTotalStockAsync();
-            var totalStaff=await _userRepository.GetStaffCountAsync();
-            var stockInToday =await _stockTransactionRepository.GetStockInTodayAsync();
-            var stockOutToday =await _stockTransactionRepository.GetStockOutTodayAsync();
-            var transactionsToday =await _stockTransactionRepository.GetTransactionCountTodayAsync();
+            var totalStaff = await _userRepository.GetStaffCountAsync();
+            var stockInToday = await _stockTransactionRepository.GetStockInTodayAsync();
+            var stockOutToday = await _stockTransactionRepository.GetStockOutTodayAsync();
+            var transactionsToday = await _stockTransactionRepository.GetTransactionCountTodayAsync();
 
             var lowStockProducts = await _productRepository.GetLowStockProductsAsync(5);
             // ye Product retrun krega pr frontend ko mujhe LowStocKTxnDto bhejna hai na
@@ -44,13 +55,13 @@ namespace InventoryManagement.API.Services.Implementations
                 Id = t.Id,
                 ProductName = t.Product!.Name,
                 SKU = t.Product.SKU,
-                Type=t.Type,
+                Type = t.Type,
                 Quantity = t.Quantity,
                 PerformedBy = t.User?.FullName,
                 CreatedAt = t.CreatedAt
             }).ToList();
 
-            return new AdminDashboardDto
+            var dashboard = new AdminDashboardDto
             {
                 TotalProducts = totalProducts,
                 LowStockProducts = lowStockCount,
@@ -59,9 +70,12 @@ namespace InventoryManagement.API.Services.Implementations
                 StockInToday = stockInToday,
                 StockOutToday = stockOutToday,
                 TransactionsToday = transactionsToday,
-                LowStockItems= lowStockItems,
-                RecentTransactions=transactions
+                LowStockItems = lowStockItems,
+                RecentTransactions = transactions
             };
+
+            _cache.Set("admin-dashboard", dashboard, TimeSpan.FromMinutes(5));
+            return dashboard;
         }
 
         public async Task<StaffDashboardDto> GetStaffDashboardAsync(int userId)
@@ -98,7 +112,7 @@ namespace InventoryManagement.API.Services.Implementations
                 TotalProducts = totalProducts,
                 LowStockProducts = lowStockCount,
                 TotalStock = totalStock,
-                LowStockItems= lowStockItems,
+                LowStockItems = lowStockItems,
                 MyRecentTransactions = myTransactionRequired
             };
         }

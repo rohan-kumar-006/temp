@@ -6,7 +6,7 @@ import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { CreateUser } from '../../../core/models/create-user.model';
 import { UpdateUser } from '../../../core/models/update-user.model';
 import { ToastService } from '../../../core/services/toast';
-// import { Modal } from 'bootstrap';
+import { Modal } from 'bootstrap';
 
 @Component({
   selector: 'app-staff-management',
@@ -28,11 +28,30 @@ export class StaffManagement implements OnInit {
   isEditMode = signal(false);
 
   private fb = inject(FormBuilder)
+  private staffModalInstance?: Modal;
   constructor(private userService: UserService, private toast: ToastService) { }
 
   ngOnInit() {
-    // console.log("Content loaded in the onint")
     this.loadUsers();
+
+    const modalEl = document.getElementById('staffModal');
+    if (modalEl) {
+      this.staffModalInstance = new Modal(modalEl, { backdrop: true });
+      modalEl.addEventListener('hidden.bs.modal', () => {
+        this.resetForm();
+      });
+    }
+  }
+  ngOnDestroy(): void {
+    this.staffModalInstance?.dispose();
+  }
+
+  private openStaffModal(): void {
+    this.staffModalInstance?.show();
+  }
+
+  private closeStaffModal(): void {
+    this.staffModalInstance?.hide();
   }
 
   loadUsers(): void {
@@ -69,7 +88,7 @@ export class StaffManagement implements OnInit {
     ).subscribe({
       next: () => {
         this.loadUsers();
-        this.resetForm();
+        this.closeStaffModal();
         this.toast.success("Staff created successfully.");
       },
       error: (err) => {
@@ -110,6 +129,7 @@ export class StaffManagement implements OnInit {
 
     this.editingUserId.set(user.id);
     this.isEditMode.set(true);
+    this.openStaffModal();
   }
 
   updateStaff() {
@@ -132,9 +152,7 @@ export class StaffManagement implements OnInit {
           this.toast.success(
             "Staff updated successfully."
           );
-          this.staffForm.reset()
-          this.isEditMode.set(false)
-          this.editingUserId.set(null)
+          this.closeStaffModal();
 
         },
         error: (err) => {
@@ -144,6 +162,10 @@ export class StaffManagement implements OnInit {
           );
         }
       })
+  }
+  addStaff() {
+    this.resetForm();
+    this.openStaffModal();
   }
 
   saveUser() {

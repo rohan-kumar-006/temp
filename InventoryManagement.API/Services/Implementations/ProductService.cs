@@ -4,6 +4,7 @@ using InventoryManagement.API.Helpers.Implementations;
 using InventoryManagement.API.Models;
 using InventoryManagement.API.Repositories.Interfaces;
 using InventoryManagement.API.Services.Interfaces;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace InventoryManagement.API.Services.Implementations;
 
@@ -13,15 +14,16 @@ public class ProductService : IProductService
     private readonly IUserRepository _userRepository;
     private readonly IFileService _fileService;
     private readonly ILogger<ProductService> _logger;
-
+    private readonly IMemoryCache _cache;
 
     public ProductService(IProductRepository productRepository, IUserRepository userRepository,
-     IFileService fileService, ILogger<ProductService> logger)
+     IFileService fileService, ILogger<ProductService> logger,IMemoryCache cache)
     {
         _productRepository = productRepository;
         _userRepository = userRepository;
         _fileService = fileService;
         _logger = logger;
+        _cache = cache;
     }
 
     public async Task<ProductDto> CreateProductAsync(CreateProductDto request, int createdByUserId)
@@ -61,6 +63,7 @@ public class ProductService : IProductService
 
         await _productRepository.AddAsync(product);
         await _productRepository.SaveChangesAsync();
+        _cache.Remove("admin-dashboard");
         _logger.LogInformation(
                 "Product created. Id: {ProductId}, Name: {ProductName}, CreatedBy: {UserId}",
                 product.Id, product.Name, createdByUserId
@@ -117,7 +120,7 @@ public class ProductService : IProductService
                 await _fileService.SaveImageAsync(request.Image);
         }
         await _productRepository.SaveChangesAsync();
-        
+        _cache.Remove("admin-dashboard");
         _logger.LogInformation( "Product updated. Id: {ProductId}, Name: {ProductName}", product.Id,product.Name);
         
         return ProductMapper.MapToProductDto(product);
@@ -144,6 +147,6 @@ public class ProductService : IProductService
         await _productRepository.DeleteAsync(product);
 
         await _productRepository.SaveChangesAsync();
-
+        _cache.Remove("admin-dashboard");
     }
 }

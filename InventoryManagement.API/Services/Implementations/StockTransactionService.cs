@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using InventoryManagement.API.DTOs.Products;
 using InventoryManagement.API.DTOs.StockTransactions;
 using InventoryManagement.API.DTOs.TransactionHistory;
@@ -7,6 +6,8 @@ using InventoryManagement.API.Models;
 using InventoryManagement.API.Repositories.Interfaces;
 using InventoryManagement.API.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
+using System.Security.Claims;
 
 namespace InventoryManagement.API.Services.Implementations;
 
@@ -16,13 +17,15 @@ public class StockTransactionService : IStockTransactionService
     private readonly IStockTransactionRepository _stockRepository;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly ILogger<StockTransactionService> _logger;
+    private readonly IMemoryCache _cache;
     public StockTransactionService(IProductRepository productRepository, IStockTransactionRepository stockRepository,
-    IHttpContextAccessor httpContextAccessor, ILogger<StockTransactionService> logger)
+    IHttpContextAccessor httpContextAccessor, ILogger<StockTransactionService> logger, IMemoryCache cache)
     {
         _productRepository = productRepository;
         _stockRepository = stockRepository;
         _httpContextAccessor = httpContextAccessor;
         _logger = logger;
+        _cache = cache;
     }
 
     public async Task<StockTransactionResponseDto> CreateTransactionAsync([FromBody] CreateStockTransactionDto request)
@@ -68,6 +71,7 @@ public class StockTransactionService : IStockTransactionService
         };
         await _stockRepository.AddAsync(transaction);
         await _productRepository.SaveChangesAsync();
+        _cache.Remove("admin-dashboard");
         _logger.LogInformation(
             "Stock transaction created. ProductId: {ProductId}, ProductName: {ProductName}, Type: {Type}, Quantity: {Quantity}, UserId: {UserId}",
             product.Id,

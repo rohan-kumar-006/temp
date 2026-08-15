@@ -79,6 +79,7 @@ builder.Services.AddControllers()
                         new JsonStringEnumConverter()
                     );
                 });
+builder.Services.AddMemoryCache();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
