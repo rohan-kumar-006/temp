@@ -1,8 +1,11 @@
+using InventoryManagement.API.DTOs.Products;
 using InventoryManagement.API.DTOs.Users;
 using InventoryManagement.API.Enums;
 using InventoryManagement.API.Models;
 using InventoryManagement.API.Repositories.Interfaces;
 using InventoryManagement.API.Services.Interfaces;
+using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace InventoryManagement.API.Services.Implementations;
 
@@ -55,18 +58,41 @@ public class UserService : IUserService
         };
     }
 
-    public async Task<IEnumerable<UserDto>> GetAllStaffAsync()
+    public async Task<PagedResult<UserDto>> GetAllStaffAsync(int page, int pageSize, string? search)
     {
-        var users = await _userRepository.GetAllStaffAsync();
-
-        return users.Select(u => new UserDto
+        if (page < 1)
         {
-            Id = u.Id,
-            FullName = u.FullName,
-            Email = u.Email,
-            Role = u.Role.ToString(),
-            IsActive = u.IsActive
-        });
+            page = 1;
+        }
+        if (pageSize < 1)
+        {
+            pageSize = 10;
+        }
+        if (pageSize > 50)
+        {
+            pageSize = 50;
+        }
+        var result = await _userRepository.GetAllStaffAsync(
+            page,
+            pageSize,
+            search
+        );
+
+        return new PagedResult<UserDto>
+        {
+            Items = result.Items.Select(u => new UserDto
+            {
+                Id = u.Id,
+                FullName = u.FullName,
+                Email = u.Email,
+                Role = u.Role.ToString(),
+                IsActive = u.IsActive
+            }),
+            Page = result.Page,
+            PageSize = result.PageSize,
+            TotalItems = result.TotalItems,
+            TotalPages = result.TotalPages
+        };
     }
     public async Task<UserDto> UpdateUserAsync(int id, UpdateUserDto request)
     {

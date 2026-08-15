@@ -1,9 +1,29 @@
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h3>Staff Management</h3>
+        <h2>Staff Management</h2>
+
         <button class="btn btn-primary" (click)="resetForm()" data-bs-toggle="modal" data-bs-target="#staffModal">
             Add Staff
         </button>
+    </div>
+
+    <div class="row mb-3">
+
+        <div class="col-md-6">
+            <div class="input-group">
+
+                <input type="text" class="form-control" placeholder="Search by name or email..." [value]="search()"
+                    (input)="search.set($any($event.target).value)" (keyup.enter)="onSearch()">
+
+                <button class="btn btn-primary" type="button" (click)="onSearch()">
+                    Search
+                </button>
+                <button *ngIf="search()" class="btn btn-outline-secondary" type="button" (click)="clearSearch()">
+                    Clear
+                </button>
+            </div>
+        </div>
+
     </div>
     <div class="text-center" *ngIf="loading()">
         Loading...
@@ -51,6 +71,30 @@
             </tr>
         </tbody>
     </table>
+    <div *ngIf="!loading() && totalItems() > 0" class="d-flex justify-content-center align-items-center mt-3">
+
+        <nav>
+            <ul class="pagination mb-0">
+                <li class="page-item" [class.disabled]="currentPage() === 1">
+                    <button class="page-link" (click)="previousPage()">
+                        Previous
+                    </button>
+
+                </li>
+                <li *ngFor="let page of [].constructor(totalPages()); let i = index" class="page-item"
+                    [class.active]="currentPage() === i + 1">
+                    <button class="page-link" (click)="goToPage(i + 1)">
+                        {{ i + 1 }}
+                    </button>
+                </li>
+                <li class="page-item" [class.disabled]="currentPage() === totalPages()">
+                    <button class="page-link" (click)="nextPage()">
+                        Next
+                    </button>
+                </li>
+            </ul>
+        </nav>
+    </div>
 </div>
 <div class="modal fade" id="staffModal">
     <div class="modal-dialog">

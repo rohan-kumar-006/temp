@@ -18,6 +18,11 @@ export class StaffManagement implements OnInit {
 
   users = signal<User[]>([]);
   loading = signal(true);
+  currentPage = signal(1)
+  pageSize = signal(10)
+  totalItems = signal(0)
+  totalPages = signal(0)
+  search = signal("")
 
   editingUserId = signal<number | null>(null);
   isEditMode = signal(false);
@@ -31,23 +36,28 @@ export class StaffManagement implements OnInit {
   }
 
   loadUsers(): void {
-    this.userService.getAllStaff().subscribe({
-      next: (response) => {
+    this.loading.set(true);
 
-        this.users.set(response.data);
+    this.userService.getAllStaff(this.currentPage(), this.pageSize(), this.search())
+      .subscribe({
+        next: (response) => {
+          this.users.set(response.data.items);
+          this.currentPage.set(response.data.page);
+          this.pageSize.set(response.data.pageSize);
 
-        this.loading.set(false);
+          this.totalItems.set(response.data.totalItems);
+          this.totalPages.set(response.data.totalPages);
+          this.loading.set(false);
+        },
+        error: (err) => {
+          this.loading.set(false);
 
-      },
-      error: (err) => {
-        this.loading.set(false);
-
-        this.toast.error(
-          err.error?.message ??
-          "Unable to load staff."
-        );
-      }
-    });
+          this.toast.error(
+            err.error?.message ??
+            "Unable to load staff."
+          );
+        }
+      });
   }
 
   createStaff() {
@@ -58,18 +68,11 @@ export class StaffManagement implements OnInit {
       this.staffForm.value as CreateUser
     ).subscribe({
       next: () => {
-
-
         this.loadUsers();
-
-
         this.resetForm();
         this.toast.success("Staff created successfully.");
       },
       error: (err) => {
-        // console.log("STATUS:", err.status);
-        // console.log("ERROR:", err.error);
-        // console.log("MESSAGE:", err.error?.message);
         this.toast.error(
           err.error?.message ??
           "Unable to create staff."
@@ -77,7 +80,6 @@ export class StaffManagement implements OnInit {
       }
     })
   }
-
 
   staffForm = this.fb.group({
     fullName: [
@@ -187,5 +189,33 @@ export class StaffManagement implements OnInit {
           );
         }
       })
+  }
+  goToPage(page: number): void {
+    if (page < 1 || page > this.totalPages()) {
+      return;
+    }
+    this.currentPage.set(page);
+    this.loadUsers();
+  }
+  nextPage(): void {
+    if (this.currentPage() < this.totalPages()) {
+      this.currentPage.update(page => page + 1);
+      this.loadUsers();
+    }
+  }
+  previousPage(): void {
+    if (this.currentPage() > 1) {
+      this.currentPage.update(page => page - 1);
+      this.loadUsers();
+    }
+  }
+  onSearch(): void {
+    this.currentPage.set(1);
+    this.loadUsers();
+  }
+  clearSearch(): void {
+    this.search.set('');
+    this.currentPage.set(1);
+    this.loadUsers();
   }
 }

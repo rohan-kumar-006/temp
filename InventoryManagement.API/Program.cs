@@ -158,7 +158,7 @@ using (var scope = app.Services.CreateScope())
     var context = scope.ServiceProvider.
     GetRequiredService<ApplicationDbContext>();
 
-    await DataSeeder.SeedAdminAsync(context);
+    await DataSeeder.SeedAdminAsync(context,builder.Configuration);
 }
 
 // Configure the HTTP request pipeline.

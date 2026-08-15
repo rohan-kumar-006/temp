@@ -1,4 +1,6 @@
 using InventoryManagement.API.Data;
+using InventoryManagement.API.DTOs.Products;
+using InventoryManagement.API.Enums;
 using InventoryManagement.API.Models;
 using InventoryManagement.API.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -26,12 +28,32 @@ public class UserRepository : IUserRepository
             .FindAsync(id);
     }
 
-    public async Task<IEnumerable<User>> GetAllStaffAsync()
+    public async Task<PagedResult<User>> GetAllStaffAsync(int page,int pageSize,string? search)
     {
-        return await _context.Users
-            .Where(u=>u.Role==Enums.UserRole.Staff)
-            .OrderByDescending(u=>u.CreatedAt)
-            .ToListAsync();
+        var query=_context.Users.Where(u=>u.Role==UserRole.Staff);
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {   
+            search= search.Trim();
+            query = query.Where(u =>
+            u.FullName.Contains(search) || u.Email.Contains(search)); 
+        }
+
+        var totalItems=await query.CountAsync();
+        var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+
+        var users = await query.OrderByDescending(u => u.CreatedAt)
+                            .Skip((page - 1) * pageSize)
+                            .Take(pageSize)
+                            .ToListAsync();
+        return new PagedResult<User>
+        {
+            Items = users,
+            Page = page,
+            PageSize = pageSize,
+            TotalItems = totalItems,
+            TotalPages = totalPages
+        };
     }
 
     public async Task<int> GetStaffCountAsync()

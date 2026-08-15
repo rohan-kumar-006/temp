@@ -98,7 +98,10 @@ public class StockTransactionService : IStockTransactionService
                 Quantity = t.Quantity,
                 Remarks = t.Remarks,
                 PerformedBy = t.User!.FullName,
-                CreatedAt = t.CreatedAt
+                CreatedAt = DateTime.SpecifyKind(
+                    t.CreatedAt,
+                    DateTimeKind.Utc
+                )
             }).ToList(),
 
             Page = result.Page,
