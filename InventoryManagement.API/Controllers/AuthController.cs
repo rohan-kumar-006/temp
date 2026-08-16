@@ -30,4 +30,30 @@ public class AuthController : ControllerBase
             )
         );
     }
+
+    [HttpPost("refresh")]
+    public async Task<ActionResult<ApiResponse<LoginResponseDto>>> Refresh()
+    {
+        var response = await _authService.RefreshAsync();
+        return Ok(
+            new ApiResponse<LoginResponseDto>(
+                true,
+                "Token refreshed successfully",
+                  response
+                )
+            );
+    }
+    [HttpPost("logout")]
+    public async Task<ActionResult<ApiResponse<object>>> Logout()
+    {
+        await _authService.LogoutAsync();
+
+        return Ok(
+            new ApiResponse<object>(
+                true,
+                "Logout successful.",
+                null
+            )
+        );
+    }
 }

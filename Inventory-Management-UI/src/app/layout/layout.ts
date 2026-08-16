@@ -20,10 +20,18 @@ export class Layout {
     private router:Router, 
 ){}
 
-  logout(){
-    this.authService.logout();
-    this.router.navigate(['/login']);
-  }
+  logout() {
+  this.authService.logout().subscribe({
+    next: () => {
+      this.authService.clearSession();
+      this.router.navigate(['/login']);
+    },
+    error: () => {
+      this.authService.clearSession();
+      this.router.navigate(['/login']);
+    }
+  });
+}
   isAdmin():boolean{
     return this.authService.isAdmin();
   }

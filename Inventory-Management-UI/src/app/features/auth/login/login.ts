@@ -31,7 +31,7 @@ export class Login {
         this.authService.login(request)
             .subscribe({
                 next: (response) => {
-                    this.authService.saveToken(response.data.token);
+                    this.authService.saveToken(response.data.accessToken);
                     this.toast.success("Login successful.");
                     this.router.navigate(['/dashboard']);
                 },
